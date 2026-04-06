@@ -1,0 +1,15 @@
+.footer {
+  background: linear-gradient(180deg, var(--forest-footer) 0%, var(--forest-footer-dark) 100%);
+  color: var(--white);
+  padding: 2rem 0;
+  margin-top: auto;
+}
+
+.email {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.email a {
+  color: rgba(255, 255, 255, 0.92);
+}
