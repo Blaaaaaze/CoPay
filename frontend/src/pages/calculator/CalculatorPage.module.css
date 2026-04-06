@@ -1,0 +1,217 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.personAddRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.personAddRow .fw-base-input {
+  flex: 1 1 200px;
+  margin-bottom: 0;
+}
+
+.personList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.scrollableViewport {
+  --calc-row-height: 2.85rem;
+  --calc-row-gap: 0.35rem;
+  max-height: calc(
+    var(--calc-visible-rows, 5) * var(--calc-row-height) +
+      (var(--calc-visible-rows, 5) - 1) * var(--calc-row-gap)
+  );
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  scrollbar-gutter: stable;
+}
+
+.personsGridScroll.scrollableViewport {
+  --calc-row-height: 2.2rem;
+  --calc-row-gap: 0.5rem;
+}
+
+.productList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.productListScroll.scrollableViewport {
+  --calc-row-height: 3.45rem;
+  --calc-row-gap: 0.5rem;
+}
+
+.productList :global(.fw-product-item) {
+  min-width: 0;
+}
+
+.productList :global(.fw-product-item) > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.personRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--page-bg);
+  min-width: 0;
+}
+
+.personDelBtn {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.personNameBtn {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.personNameBtn:hover {
+  background: var(--surface-2);
+}
+
+.personNameBtn:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+.personEditInput {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.splitHint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.resultCapture {
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.resultCapture h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+}
+
+.resultGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  margin-bottom: 1rem;
+}
+
+.resultCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  background: var(--page-bg);
+}
+
+.resultCard h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.resultCard ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.88rem;
+}
+
+.transferList {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+/* Высота как у .fw-base-input: 2px border + 0.5rem×2 padding + одна строка текста */
+.priceCurrencyRow {
+  --calc-price-control-height: calc(4px + 1rem + 1.5em);
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.priceCurrencyRow .fw-base-input:first-child {
+  flex: 2 1 0;
+  min-width: 0;
+  margin-bottom: 0;
+  height: var(--calc-price-control-height);
+  min-height: var(--calc-price-control-height);
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.currencySelect {
+  flex: 1 1 0;
+  min-width: 6.75rem;
+  margin-bottom: 0;
+  box-sizing: border-box;
+  height: var(--calc-price-control-height);
+  min-height: var(--calc-price-control-height);
+  padding: 0.5rem 1.75rem 0.5rem 0.65rem;
+  font-size: inherit;
+  line-height: 1.5;
+  align-self: stretch;
+  appearance: none;
+  background-color: var(--page-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M2.5 4.5 6 8.5 9.5 4.5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 12px;
+}
+
+html[data-theme="dark"] .currencySelect {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M2.5 4.5 6 8.5 9.5 4.5z'/%3E%3C/svg%3E");
+}
+
+.submitForm {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}

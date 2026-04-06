@@ -1,0 +1,117 @@
+.roomGrid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1000px) {
+  .roomGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  }
+
+  .roomToolbar {
+    grid-column: 1 / -1;
+  }
+
+  .roomCenter {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .roomAside {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+.roomToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.membersCard {
+  border: 2px solid var(--accent-cyan);
+  border-radius: 20px;
+  padding: 1.25rem 1.35rem;
+  background: var(--surface);
+  margin-bottom: 1rem;
+}
+
+.membersCard h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.membersList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.membersList li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.05rem;
+}
+
+.membersList li:last-child {
+  border-bottom: none;
+}
+
+.viewerBlock {
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.viewerBlock h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.viewerList {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.historyCard {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+.expenseRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.expenseRow:last-child {
+  border-bottom: none;
+}
+
+.expenseActions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.lineHint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.15rem 0 0;
+}
