@@ -1,0 +1,125 @@
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.receiptCard {
+  max-width: 32rem;
+  margin-bottom: 1.5rem;
+}
+
+.fileLabel {
+  display: inline-block;
+  cursor: pointer;
+  color: var(--link-blue);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.fileLabel input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.authSwitch {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.roomList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.roomItem {
+  border: 1px solid #e2ebe6;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 0.75rem;
+  background: #fff;
+}
+
+.roomHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.roomName {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.subtle {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.expList {
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.balanceBox {
+  background: #f0faf6;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.balanceBox ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.searchHits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #cfd8d3;
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.searchHit {
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  border-bottom: 1px solid #eef2f0;
+}
+
+.searchHit:last-child {
+  border-bottom: none;
+}
+
+.searchHit:hover {
+  background: #f0faf6;
+}
+
+.twoColSection {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .twoColSection {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
