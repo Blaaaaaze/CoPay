@@ -1,0 +1,122 @@
+/* Тема и акценты на :root через data-атрибуты на html */
+html[data-theme="dark"] {
+  --page-bg: #111816;
+  --surface: #1a211e;
+  --surface-2: #1e2723;
+  --text: #c5cfc9;
+  --muted: #7a8a82;
+  --border: #2c3632;
+  --white: #dce5df;
+}
+
+html[data-theme="light"] {
+  --page-bg: #ffffff;
+  --surface: #f8faf9;
+  --surface-2: #f0faf6;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --border: #e2ebe6;
+  --white: #ffffff;
+}
+
+/* Светлая тема — акценты как раньше */
+html[data-theme="light"][data-accent="mint"] {
+  --mint-header: #7fd8b8;
+  --mint-header-deep: #5ec9a4;
+  --forest-footer: #1a4d3a;
+  --forest-footer-dark: #0f2e24;
+  --logo-cyan: #2ee6d6;
+  --accent-cyan: #1ec8c4;
+  --link-blue: #1565c0;
+}
+
+html[data-theme="light"][data-accent="blue"] {
+  --mint-header: #7eb8e8;
+  --mint-header-deep: #5a9fd4;
+  --forest-footer: #1a3d5c;
+  --forest-footer-dark: #0f2438;
+  --logo-cyan: #5ecfff;
+  --accent-cyan: #3aa8e6;
+  --link-blue: #1565c0;
+}
+
+html[data-theme="light"][data-accent="red"] {
+  --mint-header: #e89890;
+  --mint-header-deep: #d67a72;
+  --forest-footer: #5c1a1a;
+  --forest-footer-dark: #380f0f;
+  --logo-cyan: #ff8a80;
+  --accent-cyan: #e85c5c;
+  --link-blue: #b71c1c;
+}
+
+html[data-theme="light"][data-accent="purple"] {
+  --mint-header: #b8a0e8;
+  --mint-header-deep: #9a7fd4;
+  --forest-footer: #3a1a5c;
+  --forest-footer-dark: #220f38;
+  --logo-cyan: #d4a5ff;
+  --accent-cyan: #9c6ce8;
+  --link-blue: #5e35b1;
+}
+
+/* Тёмная тема — приглушённые акценты, без «кислотных» вставок */
+html[data-theme="dark"][data-accent="mint"] {
+  --mint-header: #3d5a4f;
+  --mint-header-deep: #344e45;
+  --forest-footer: #1a2822;
+  --forest-footer-dark: #121c18;
+  --logo-cyan: #6a9e8e;
+  --accent-cyan: #5a887a;
+  --link-blue: #6a9eb8;
+}
+
+html[data-theme="dark"][data-accent="blue"] {
+  --mint-header: #3d5568;
+  --mint-header-deep: #354a5c;
+  --forest-footer: #1a222c;
+  --forest-footer-dark: #121820;
+  --logo-cyan: #6a90a8;
+  --accent-cyan: #5a7d94;
+  --link-blue: #6a94b8;
+}
+
+html[data-theme="dark"][data-accent="red"] {
+  --mint-header: #5c4545;
+  --mint-header-deep: #4f3c3c;
+  --forest-footer: #281a1a;
+  --forest-footer-dark: #1c1212;
+  --logo-cyan: #a88080;
+  --accent-cyan: #8f6e6e;
+  --link-blue: #b08080;
+}
+
+html[data-theme="dark"][data-accent="purple"] {
+  --mint-header: #4d4558;
+  --mint-header-deep: #433c4d;
+  --forest-footer: #221a28;
+  --forest-footer-dark: #18121c;
+  --logo-cyan: #9488a8;
+  --accent-cyan: #807694;
+  --link-blue: #9488b0;
+}
+
+/* По умолчанию (до гидрации) считаем светлую mint */
+html:not([data-theme]) {
+  --mint-header: #7fd8b8;
+  --mint-header-deep: #5ec9a4;
+  --forest-footer: #1a4d3a;
+  --forest-footer-dark: #0f2e24;
+  --logo-cyan: #2ee6d6;
+  --accent-cyan: #1ec8c4;
+  --link-blue: #1565c0;
+}
+
+html {
+  background: var(--page-bg);
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--text);
+}

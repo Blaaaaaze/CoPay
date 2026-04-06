@@ -1,0 +1,133 @@
+/* Стиль форм в духе Friends_wallet: рамка, скругление, цветные кнопки */
+.fw-panel {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+  min-height: 120px;
+  border-radius: 30px;
+  border: 5px solid var(--text);
+  padding: 1.25rem 1.5rem 1.5rem;
+  box-sizing: border-box;
+  background: var(--surface);
+  box-shadow: 5px 5px 28px color-mix(in srgb, var(--accent-cyan) 25%, transparent);
+}
+
+html[data-theme="dark"] .fw-panel {
+  border-width: 3px;
+  border-color: var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.fw-panel h2,
+.fw-panel h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.fw-input-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fw-base-input {
+  outline: none;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+.fw-base-input:focus {
+  border-color: var(--accent-cyan);
+}
+
+.fw-persons-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  margin: 12px 0;
+  justify-content: center;
+}
+
+.fw-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.fw-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-cyan);
+}
+
+.fw-btn {
+  margin: 6px 4px 0;
+  outline: none;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 2px solid;
+  cursor: pointer;
+  font-weight: 600;
+  background: transparent;
+}
+
+.fw-btn-add {
+  color: #37cdff;
+  border-color: #37cdff;
+}
+
+.fw-btn-del {
+  color: #ca0202;
+  border-color: #ca0202;
+}
+
+.fw-btn-edit {
+  color: #e3c61c;
+  border-color: #e3c61c;
+}
+
+.fw-btn-download {
+  color: #2058f3;
+  border-color: #2058f3;
+}
+
+.fw-product-item {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--page-bg);
+}
+
+.fw-product-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.fw-btn.item-btn {
+  min-width: 44px;
+  padding: 6px 10px;
+}
+
+html[data-theme="dark"] .fw-btn-add {
+  color: #5dd5ff;
+  border-color: #5dd5ff;
+}

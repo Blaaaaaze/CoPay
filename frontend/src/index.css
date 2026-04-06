@@ -1,15 +1,230 @@
+:root {
+  --dot-inactive: #d0d0d0;
+  --radius-img: 28px;
+  --font: "Inter", system-ui, -apple-system, sans-serif;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  line-height: 1.5;
+html {
+  scroll-behavior: smooth;
 }
 
-code {
-  font-size: 0.9em;
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--page-bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--link-blue);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.app-main {
+  min-height: 60vh;
+}
+
+/* Двухколоночные формы на широких экранах */
+.form-grid-2 {
+  display: grid;
+  gap: 1rem 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-grid-2 .full-span {
+  grid-column: 1 / -1;
+}
+
+.home-section-alt {
+  background: var(--surface-2);
+}
+
+/* Калькулятор: две колонки блоков на широком экране */
+.calc-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .calc-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calc-span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+.calc-layout .fw-panel {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.container {
+  width: min(1120px, 92vw);
+  margin: 0 auto;
+}
+
+.section-pad {
+  padding: 4.5rem 0;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.section-text {
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+  max-width: 36rem;
+}
+
+.link-cta {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.two-col {
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 840px) {
+  .two-col {
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5rem;
+  }
+
+  .two-col.reverse {
+    direction: rtl;
+  }
+
+  .two-col.reverse > * {
+    direction: ltr;
+  }
+}
+
+.rounded-media {
+  border-radius: var(--radius-img);
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(15, 46, 36, 0.12);
+}
+
+.page-hero {
+  padding: 2.5rem 0 1rem;
+}
+
+.page-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+form label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+button.btn-primary {
+  background: var(--forest-footer);
+  color: var(--white);
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.btn-primary:hover {
+  background: var(--forest-footer-dark);
+}
+
+button.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+button.btn-ghost,
+a.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--mint-header-deep);
+  color: var(--forest-footer);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 600;
+  font-size: inherit;
+  font-family: inherit;
+  text-align: center;
+}
+
+a.btn-ghost:hover {
+  background: rgba(127, 216, 184, 0.15);
+}
+
+.err {
+  color: #b00020;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.ok {
+  color: var(--forest-footer);
+  font-size: 0.9rem;
 }

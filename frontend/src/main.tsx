@@ -1,13 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App";
+import App from "./app/App";
+import { AuthProvider } from "./app/auth/AuthContext";
+import { I18nProvider } from "./shared/i18n/I18nContext";
+import "./shared/styles/theme.css";
+import "./shared/styles/fw-forms.css";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <I18nProvider>
+          <App />
+        </I18nProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
