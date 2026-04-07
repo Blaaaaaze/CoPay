@@ -11,13 +11,20 @@
 }
 
 .panel {
+  display: flex;
+  flex-direction: column;
   width: min(560px, 100%);
   max-height: calc(100vh - 3rem);
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
   background: var(--surface);
   border: 2px solid var(--border);
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.panelWide {
+  width: min(760px, 100%);
 }
 
 .head {
@@ -27,8 +34,7 @@
   gap: 0.75rem;
   padding: 1rem 1.1rem;
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   background: var(--surface);
   z-index: 1;
 }
@@ -54,5 +60,8 @@
 }
 
 .body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   padding: 1rem 1.1rem 1.25rem;
 }

@@ -10,9 +10,13 @@ type Props = {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  /** Wider dialog panel (e.g. expense wizard) */
+  wide?: boolean;
+  /** Extra class for the body area below the header */
+  bodyClassName?: string;
 };
 
-export function Modal({ open, title, children, onClose }: Props) {
+export function Modal({ open, title, children, onClose, wide, bodyClassName }: Props) {
   const { t } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -27,10 +31,10 @@ export function Modal({ open, title, children, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       panelRef.current?.querySelector<HTMLElement>("input, select, textarea, button")?.focus();
     }, 0);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [open]);
 
   useEffect(() => {
@@ -50,6 +54,9 @@ export function Modal({ open, title, children, onClose }: Props) {
 
   if (!open) return null;
 
+  const panelClass = [styles.panel, wide ? styles.panelWide : ""].filter(Boolean).join(" ");
+  const bodyClass = [styles.body, bodyClassName].filter(Boolean).join(" ");
+
   return (
     <div
       className={styles.backdrop}
@@ -60,7 +67,7 @@ export function Modal({ open, title, children, onClose }: Props) {
     >
       <div
         ref={panelRef}
-        className={styles.panel}
+        className={panelClass}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -73,7 +80,7 @@ export function Modal({ open, title, children, onClose }: Props) {
             ×
           </button>
         </div>
-        <div className={styles.body}>{children}</div>
+        <div className={bodyClass}>{children}</div>
       </div>
     </div>
   );

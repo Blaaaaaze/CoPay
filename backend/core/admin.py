@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import AdhocCalculation, Expense, Room, User
+from .models import AdhocCalculation, Expense, Room, RoomActivity, Settlement, User
 
 
 @admin.register(User)
@@ -18,6 +18,16 @@ class RoomAdmin(admin.ModelAdmin):
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
     list_display = ("title", "amount", "room", "payer")
+
+
+@admin.register(Settlement)
+class SettlementAdmin(admin.ModelAdmin):
+    list_display = ("room", "from_user", "to_user", "amount", "created_at")
+
+
+@admin.register(RoomActivity)
+class RoomActivityAdmin(admin.ModelAdmin):
+    list_display = ("room", "kind", "actor", "created_at")
 
 
 @admin.register(AdhocCalculation)

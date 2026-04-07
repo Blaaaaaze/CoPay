@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../shared/api/client";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { Modal } from "../../ui/molecules/Modal";
-import { currencySymbol } from "../../shared/lib/currency";
+import { currencySymbol, formatMoney } from "../../shared/lib/currency";
 import type { Member, RoomExpense } from "./roomTypes";
+import styles from "./ExpenseWizardModal.module.css";
 
 type DraftLine = { name: string; amount: string; participantIds: string[] };
 
@@ -46,6 +47,20 @@ export function ExpenseWizardModal({
   const [loading, setLoading] = useState(false);
 
   const sym = currencySymbol(currency);
+
+  const footerStats = useMemo(() => {
+    if (simpleMode) {
+      const n = parseFloat(simpleAmount.replace(",", "."));
+      const total = !Number.isFinite(n) || n <= 0 ? 0 : n;
+      return { count: 1, total };
+    }
+    let total = 0;
+    for (const L of lines) {
+      const v = parseFloat(L.amount.replace(",", "."));
+      if (Number.isFinite(v) && v > 0) total += v;
+    }
+    return { count: lines.length, total };
+  }, [simpleMode, simpleAmount, lines]);
 
   useEffect(() => {
     if (!open) return;
@@ -159,138 +174,150 @@ export function ExpenseWizardModal({
       open={open}
       onClose={onClose}
       title={editing ? t("expense.edit") : t("expense.new")}
+      wide
+      bodyClassName={styles.modalBodyFill}
     >
-      <form onSubmit={submit}>
-        {err && <p className="err">{err}</p>}
+      <form className={styles.formStack} onSubmit={submit}>
+        <div className={styles.scroll}>
+          {err && <p className="err">{err}</p>}
 
-        <div className="fw-input-row">
-          <span>{t("expense.titleLabel")}</span>
-          <input
-            className="fw-base-input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("expense.titlePh")}
-          />
-        </div>
-
-        <div className="fw-input-row">
-          <span>{t("expense.payer")}</span>
-          <select
-            className="fw-base-input"
-            value={payerId}
-            onChange={(e) => setPayerId(e.target.value)}
-          >
-            {memberIds.map((mid) => (
-              <option key={mid} value={mid}>
-                {members.find((m) => m.id === mid)?.fullName || mid}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <label className="fw-check" style={{ marginBottom: "0.75rem", display: "flex" }}>
-          <input
-            type="checkbox"
-            checked={simpleMode}
-            onChange={(e) => setSimpleMode(e.target.checked)}
-          />
-          {t("expense.simpleSplit")}
-        </label>
-
-        {simpleMode ? (
           <div className="fw-input-row">
-            <span>
-              {t("expense.amount")} ({sym})
-            </span>
+            <span>{t("expense.titleLabel")}</span>
             <input
               className="fw-base-input"
-              value={simpleAmount}
-              onChange={(e) => setSimpleAmount(e.target.value)}
-              inputMode="decimal"
-              placeholder="0"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("expense.titlePh")}
             />
           </div>
-        ) : (
-          <>
-            <p className="section-text" style={{ fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
-              {t("expense.linesHint")}
-            </p>
-            {lines.map((line, i) => (
-              <div
-                key={i}
-                style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                  padding: "0.75rem",
-                  marginBottom: "0.75rem",
-                  background: "var(--page-bg)",
-                }}
-              >
-                <div className="fw-input-row">
-                  <span>{t("expense.product")}</span>
-                  <input
-                    className="fw-base-input"
-                    value={line.name}
-                    onChange={(e) => updateLine(i, { name: e.target.value })}
-                    placeholder={t("expense.milkPh")}
-                  />
-                </div>
-                <div className="fw-input-row">
-                  <span>{t("expense.amount")}</span>
-                  <input
-                    className="fw-base-input"
-                    value={line.amount}
-                    onChange={(e) => updateLine(i, { amount: e.target.value })}
-                    inputMode="decimal"
-                    placeholder="0"
-                  />
-                </div>
-                <div className="fw-persons-grid" style={{ justifyContent: "flex-start" }}>
-                  {memberIds.map((mid) => {
-                    const m = members.find((x) => x.id === mid);
-                    return (
-                      <label key={mid} className="fw-check">
-                        <input
-                          type="checkbox"
-                          checked={line.participantIds.includes(mid)}
-                          onChange={() => toggleParticipant(i, mid)}
-                        />
-                        {m?.fullName || mid}
-                      </label>
-                    );
-                  })}
-                </div>
-                <button
-                  type="button"
-                  className="fw-btn fw-btn-del"
-                  onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
-                  disabled={lines.length <= 1}
-                >
-                  {t("expense.removeLine")}
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="fw-btn fw-btn-add"
-              onClick={() => setLines((prev) => [...prev, emptyLine(memberIds)])}
-            >
-              {t("expense.addLine")}
-            </button>
-          </>
-        )}
 
-        <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading
-              ? t("expense.saving")
-              : editing
-                ? t("common.save")
-                : t("expense.create")}
-          </button>
-          <button type="button" className="btn-ghost" onClick={onClose}>
-            {t("common.cancel")}
-          </button>
+          <div className="fw-input-row">
+            <span>{t("expense.payer")}</span>
+            <select
+              className="fw-base-input"
+              value={payerId}
+              onChange={(e) => setPayerId(e.target.value)}
+            >
+              {memberIds.map((mid) => (
+                <option key={mid} value={mid}>
+                  {members.find((m) => m.id === mid)?.fullName || mid}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <label className="fw-check" style={{ marginBottom: "0.75rem", display: "flex" }}>
+            <input
+              type="checkbox"
+              checked={simpleMode}
+              onChange={(e) => setSimpleMode(e.target.checked)}
+            />
+            {t("expense.simpleSplit")}
+          </label>
+
+          {simpleMode ? (
+            <div className="fw-input-row">
+              <span>
+                {t("expense.amount")} ({sym})
+              </span>
+              <input
+                className="fw-base-input"
+                value={simpleAmount}
+                onChange={(e) => setSimpleAmount(e.target.value)}
+                inputMode="decimal"
+                placeholder="0"
+              />
+            </div>
+          ) : (
+            <>
+              <p className="section-text" style={{ fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
+                {t("expense.linesHint")}
+              </p>
+              {lines.map((line, i) => (
+                <div
+                  key={i}
+                  style={{
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: "0.75rem",
+                    marginBottom: "0.75rem",
+                    background: "var(--page-bg)",
+                  }}
+                >
+                  <div className="fw-input-row">
+                    <span>{t("expense.product")}</span>
+                    <input
+                      className="fw-base-input"
+                      value={line.name}
+                      onChange={(e) => updateLine(i, { name: e.target.value })}
+                      placeholder={t("expense.milkPh")}
+                    />
+                  </div>
+                  <div className="fw-input-row">
+                    <span>{t("expense.amount")}</span>
+                    <input
+                      className="fw-base-input"
+                      value={line.amount}
+                      onChange={(e) => updateLine(i, { amount: e.target.value })}
+                      inputMode="decimal"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="fw-persons-grid" style={{ justifyContent: "flex-start" }}>
+                    {memberIds.map((mid) => {
+                      const m = members.find((x) => x.id === mid);
+                      return (
+                        <label key={mid} className="fw-check">
+                          <input
+                            type="checkbox"
+                            checked={line.participantIds.includes(mid)}
+                            onChange={() => toggleParticipant(i, mid)}
+                          />
+                          {m?.fullName || mid}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="fw-btn fw-btn-del"
+                    onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
+                    disabled={lines.length <= 1}
+                  >
+                    {t("expense.removeLine")}
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="fw-btn fw-btn-add"
+                onClick={() => setLines((prev) => [...prev, emptyLine(memberIds)])}
+              >
+                {t("expense.addLine")}
+              </button>
+            </>
+          )}
+        </div>
+
+        <div className={styles.footer}>
+          <p className={styles.summary}>
+            {t("expense.footerSummary", {
+              count: String(footerStats.count),
+              total: formatMoney(footerStats.total, currency),
+            })}
+          </p>
+          <div className={styles.actions}>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading
+                ? t("expense.saving")
+                : editing
+                  ? t("common.save")
+                  : t("expense.create")}
+            </button>
+            <button type="button" className="btn-ghost" onClick={onClose}>
+              {t("common.cancel")}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

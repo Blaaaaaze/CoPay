@@ -20,19 +20,28 @@ export type LineItemStored = {
   participantIds: string[];
 };
 
+export type ExpenseDisputeEntry = {
+  userId: string;
+  message: string;
+  createdAt: string;
+};
+
 export type RoomExpense = {
   id: string;
   title: string;
   amount: number;
   payerId: string;
+  /** Кто создал запись расхода (может редактировать и удалять) */
+  createdById: string;
   shares: Record<string, number>;
   lineItems?: LineItemStored[];
+  disputes?: ExpenseDisputeEntry[];
   createdAt: string;
 };
 
 export type BalanceViewer = {
-  payTo: { toName: string; amount: number }[];
-  receiveFrom: { fromName: string; amount: number }[];
+  payTo: { toUserId: string; toName: string; amount: number }[];
+  receiveFrom: { fromUserId: string; fromName: string; amount: number }[];
 };
 
 export type BalanceResp = {
@@ -48,4 +57,13 @@ export type SearchHit = {
   fullName: string;
   displayName: string;
   lastName: string;
+};
+
+export type RoomActivityItem = {
+  id: string;
+  kind: string;
+  payload: Record<string, unknown>;
+  actorId: string;
+  actorName: string;
+  createdAt: string;
 };

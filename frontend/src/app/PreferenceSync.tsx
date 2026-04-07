@@ -17,10 +17,14 @@ export function PreferenceSync() {
   const { setLang } = useI18n();
 
   useEffect(() => {
-    const theme = user?.theme || localStorage.getItem(THEME_KEY) || "light";
-    const accent = user?.accent || localStorage.getItem(ACCENT_KEY) || "mint";
-    applyThemeToDocument(theme, accent);
-  }, [user?.theme, user?.accent]);
+    if (user) {
+      const theme = user.theme || localStorage.getItem(THEME_KEY) || "light";
+      const accent = user.accent || localStorage.getItem(ACCENT_KEY) || "mint";
+      applyThemeToDocument(theme, accent);
+    } else {
+      applyThemeToDocument("light", "mint");
+    }
+  }, [user?.theme, user?.accent, user?.id]);
 
   useEffect(() => {
     if (user?.preferredLanguage) {

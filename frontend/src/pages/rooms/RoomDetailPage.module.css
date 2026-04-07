@@ -54,16 +54,6 @@
   margin: 0;
 }
 
-.membersList li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 1.05rem;
-}
-
-.membersList li:last-child {
-  border-bottom: none;
-}
-
 .viewerBlock {
   margin-bottom: 1rem;
   padding: 1rem 1.1rem;
@@ -83,35 +73,202 @@
   padding-left: 1.1rem;
 }
 
-.historyCard {
+.historyHeading {
+  margin: 0 0 0.85rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.historyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.expenseCard {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.activityCard {
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--surface);
   padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.activityCard h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.activityList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.activityList li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.activityList li:last-child {
+  border-bottom: none;
+}
+
+.activityMeta {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.memberRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.05rem;
+}
+
+.memberRow:last-child {
+  border-bottom: none;
+}
+
+.memberReceiveBtn {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
 }
 
 .expenseRow {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
+  gap: 0.65rem;
 }
 
-.expenseRow:last-child {
-  border-bottom: none;
+.expenseRowClickable {
+  cursor: pointer;
+  border-radius: 10px;
+  margin: 0 -0.35rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  transition: background 0.12s ease;
+}
+
+.expenseRowClickable:hover {
+  background: var(--surface-2);
+}
+
+.expenseRowClickable:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+.expenseMain {
+  flex: 1 1 min(0, 18rem);
+  min-width: 0;
 }
 
 .expenseActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.disputesList {
+  margin: 0.45rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.disputesList li {
+  margin-bottom: 0.35rem;
+}
+
+.disputeMeta {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
 }
 
 .lineHint {
   font-size: 0.85rem;
   color: var(--muted);
   margin: 0.15rem 0 0;
+}
+
+.creatorTitleBlock {
+  margin-bottom: 0.35rem;
+}
+
+.creatorTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.roomTitleClickable {
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 0.15rem 0.35rem;
+  margin: 0 -0.35rem 0.35rem;
+  transition: background 0.12s ease;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.roomTitleClickable:hover {
+  background: var(--surface-2);
+}
+
+.roomNameInput {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.35rem 0.5rem;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+.roomNameInput:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+
+.roomCurrencyBadge {
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--muted);
+  white-space: nowrap;
 }

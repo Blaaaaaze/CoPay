@@ -6,6 +6,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,7 +14,15 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .expense_utils import shares_from_line_items
 from .jwt_auth import create_token, user_from_request
-from .models import AdhocCalculation, Expense, Room, TextResource, User
+from .models import (
+    AdhocCalculation,
+    Expense,
+    Room,
+    RoomActivity,
+    Settlement,
+    TextResource,
+    User,
+)
 from .settlement import simplify_debts
 
 
@@ -24,6 +33,47 @@ def _body(request) -> dict:
         return json.loads(request.body.decode("utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError):
         return {}
+
+
+def _raw_balances_from_expenses(room):
+    member_ids = [str(m.id) for m in room.members.all()]
+    raw_bal = {mid: 0.0 for mid in member_ids}
+    for ex in room.expenses.order_by("created_at"):
+        pid = str(ex.payer_id)
+        amt = float(ex.amount)
+        raw_bal[pid] = raw_bal.get(pid, 0) + amt
+        tw = sum(float(ex.shares.get(mid, 0) or 0) for mid in member_ids)
+        if tw <= 0:
+            n = len(member_ids)
+            if n > 0:
+                share_amt = amt / n
+                for mid in member_ids:
+                    raw_bal[mid] -= share_amt
+            continue
+        for mid in member_ids:
+            w = float(ex.shares.get(mid, 0) or 0)
+            raw_bal[mid] -= amt * w / tw
+    return raw_bal
+
+
+def _apply_settlements_to_balances(room, raw_bal):
+    s = {k: float(v) for k, v in raw_bal.items()}
+    for st in room.settlements.all():
+        fid = str(st.from_user_id)
+        tid = str(st.to_user_id)
+        amt = float(st.amount)
+        s[fid] = s.get(fid, 0.0) + amt
+        s[tid] = s.get(tid, 0.0) - amt
+    return s
+
+
+def _log_room_activity(room, actor, kind, payload=None):
+    RoomActivity.objects.create(
+        room=room,
+        actor=actor,
+        kind=kind,
+        payload=payload or {},
+    )
 
 
 def _require_auth(request):
@@ -221,14 +271,7 @@ def user_search(request):
     return JsonResponse(out, safe=False)
 
 
-@require_GET
-def room_detail(request, room_id):
-    user, err = _require_auth(request)
-    if err:
-        return err
-    room, e = _room_for_user(user, room_id)
-    if e:
-        return e
+def _room_detail_json(room):
     members = []
     for m in room.members.all():
         members.append(
@@ -242,16 +285,39 @@ def room_detail(request, room_id):
                 or m.username,
             }
         )
-    return JsonResponse(
-        {
-            "id": str(room.id),
-            "name": room.name,
-            "currency": room.currency,
-            "createdBy": str(room.created_by_id),
-            "memberIds": [str(m.id) for m in room.members.all()],
-            "members": members,
-        }
-    )
+    return {
+        "id": str(room.id),
+        "name": room.name,
+        "currency": room.currency,
+        "createdBy": str(room.created_by_id),
+        "memberIds": [str(m.id) for m in room.members.all()],
+        "members": members,
+    }
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PATCH"])
+def room_detail(request, room_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    if request.method == "GET":
+        return JsonResponse(_room_detail_json(room))
+    # PATCH — только создатель меняет название
+    if room.created_by_id != user.id:
+        return JsonResponse(
+            {"error": "Только создатель может редактировать комнату"}, status=403
+        )
+    data = _body(request)
+    name = (data.get("name") or "").strip()
+    if len(name) < 2:
+        return JsonResponse({"error": "Название комнаты от 2 символов"}, status=400)
+    room.name = name[:200]
+    room.save(update_fields=["name"])
+    return JsonResponse(_room_detail_json(room))
 
 
 @csrf_exempt
@@ -375,8 +441,10 @@ def _expense_json(ex: Expense):
         "title": ex.title,
         "amount": float(ex.amount),
         "payerId": str(ex.payer_id),
+        "createdById": str(ex.created_by_id),
         "shares": {str(k): float(v) for k, v in ex.shares.items()},
         "lineItems": ex.line_items or [],
+        "disputes": ex.disputes if isinstance(ex.disputes, list) else [],
         "createdAt": ex.created_at.isoformat(),
     }
 
@@ -445,8 +513,19 @@ def _expenses_create(request, room_id):
         title=built["title"],
         amount=built["amount"],
         payer=built["payer"],
+        created_by=user,
         shares=built["shares"],
         line_items=built["line_items"],
+    )
+    _log_room_activity(
+        room,
+        user,
+        "expense_created",
+        {
+            "expenseId": str(ex.id),
+            "title": ex.title,
+            "amount": float(ex.amount),
+        },
     )
     return JsonResponse(_expense_json(ex), status=201)
 
@@ -466,7 +545,18 @@ def expense_detail(request, room_id, expense_id):
         return JsonResponse({"error": "Расход не найден"}, status=404)
     if request.method == "GET":
         return JsonResponse(_expense_json(ex))
+    if ex.created_by_id != user.id:
+        return JsonResponse(
+            {"error": "Изменять и удалять расход может только автор записи"},
+            status=403,
+        )
     if request.method == "DELETE":
+        _log_room_activity(
+            room,
+            user,
+            "expense_deleted",
+            {"expenseId": str(ex.id), "title": ex.title},
+        )
         ex.delete()
         return JsonResponse({"ok": True})
     data = _body(request)
@@ -479,7 +569,247 @@ def expense_detail(request, room_id, expense_id):
     ex.shares = built["shares"]
     ex.line_items = built["line_items"]
     ex.save()
+    _log_room_activity(
+        room,
+        user,
+        "expense_updated",
+        {
+            "expenseId": str(ex.id),
+            "title": ex.title,
+            "amount": float(ex.amount),
+        },
+    )
     return JsonResponse(_expense_json(ex))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def expense_dispute(request, room_id, expense_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    try:
+        ex = Expense.objects.get(pk=expense_id, room=room)
+    except Expense.DoesNotExist:
+        return JsonResponse({"error": "Расход не найден"}, status=404)
+    if ex.created_by_id == user.id:
+        return JsonResponse({"error": "Нельзя оспорить свой расход"}, status=400)
+    data = _body(request)
+    message = (data.get("message") or "").strip()
+    if len(message) < 1:
+        return JsonResponse({"error": "Укажите текст обращения"}, status=400)
+    if len(message) > 2000:
+        message = message[:2000]
+    disputes = list(ex.disputes) if isinstance(ex.disputes, list) else []
+    disputes.append(
+        {
+            "userId": str(user.id),
+            "message": message,
+            "createdAt": timezone.now().isoformat(),
+        }
+    )
+    ex.disputes = disputes
+    ex.save(update_fields=["disputes"])
+    _log_room_activity(
+        room,
+        user,
+        "dispute_added",
+        {"expenseId": str(ex.id), "title": ex.title},
+    )
+    return JsonResponse(_expense_json(ex))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def room_settlement(request, room_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    data = _body(request)
+    from_id = str(data.get("fromUserId") or "").strip()
+    to_id = str(data.get("toUserId") or "").strip()
+    if from_id != str(user.id):
+        return JsonResponse(
+            {"error": "Можно фиксировать только свои переводы"}, status=403
+        )
+    member_ids = {str(m.id) for m in room.members.all()}
+    if from_id not in member_ids or to_id not in member_ids:
+        return JsonResponse({"error": "Участники должны быть в комнате"}, status=400)
+    if from_id == to_id:
+        return JsonResponse({"error": "Укажите разных людей"}, status=400)
+    try:
+        amt = Decimal(str(data.get("amount")))
+    except (InvalidOperation, TypeError, ValueError):
+        amt = None
+    if amt is None or amt <= 0:
+        return JsonResponse({"error": "Укажите положительную сумму"}, status=400)
+    amt = amt.quantize(Decimal("0.01"))
+    st = Settlement.objects.create(
+        room=room,
+        from_user_id=from_id,
+        to_user_id=to_id,
+        amount=amt,
+        created_by=user,
+        note=str(data.get("note") or "")[:500],
+    )
+    _log_room_activity(
+        room,
+        user,
+        "settlement_paid",
+        {
+            "settlementId": str(st.id),
+            "fromUserId": from_id,
+            "toUserId": to_id,
+            "amount": float(amt),
+        },
+    )
+    return JsonResponse(
+        {
+            "id": str(st.id),
+            "fromUserId": from_id,
+            "toUserId": to_id,
+            "amount": float(st.amount),
+        },
+        status=201,
+    )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def room_settlement_full(request, room_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    data = _body(request)
+    uid = str(data.get("userId") or "").strip()
+    if uid != str(user.id):
+        return JsonResponse({"error": "Можно погасить только свои долги"}, status=403)
+    member_ids = {str(m.id) for m in room.members.all()}
+    if uid not in member_ids:
+        return JsonResponse({"error": "Нет в комнате"}, status=400)
+    raw_bal = _raw_balances_from_expenses(room)
+    raw_bal = _apply_settlements_to_balances(room, raw_bal)
+    transfers = simplify_debts(raw_bal)
+    count = 0
+    for t in transfers:
+        if str(t["from"]) != uid:
+            continue
+        pay = float(t["amount"])
+        if pay <= 1e-9:
+            continue
+        Settlement.objects.create(
+            room=room,
+            from_user_id=t["from"],
+            to_user_id=t["to"],
+            amount=Decimal(str(round(pay, 2))),
+            created_by=user,
+            note="",
+        )
+        count += 1
+    _log_room_activity(
+        room,
+        user,
+        "debts_cleared",
+        {"userId": uid, "paymentsCount": count},
+    )
+    return JsonResponse({"ok": True, "paymentsCreated": count})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def room_settlement_received(request, room_id):
+    """Текущий пользователь фиксирует, что участник отправил ему деньги (долг перед ним погашен)."""
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    data = _body(request)
+    from_id = str(data.get("fromUserId") or "").strip()
+    to_id = str(user.id)
+    member_ids = {str(m.id) for m in room.members.all()}
+    if from_id not in member_ids or to_id not in member_ids:
+        return JsonResponse({"error": "Участники должны быть в комнате"}, status=400)
+    if from_id == to_id:
+        return JsonResponse({"error": "Укажите другого участника"}, status=400)
+    raw_bal = _raw_balances_from_expenses(room)
+    raw_bal = _apply_settlements_to_balances(room, raw_bal)
+    transfers = simplify_debts(raw_bal)
+    pay = None
+    for t in transfers:
+        if str(t["from"]) == from_id and str(t["to"]) == to_id:
+            pay = float(t["amount"])
+            break
+    if pay is None or pay <= 1e-9:
+        return JsonResponse(
+            {"error": "Нет долга этого участника перед вами по текущему расчёту"},
+            status=400,
+        )
+    amt = Decimal(str(round(pay, 2)))
+    st = Settlement.objects.create(
+        room=room,
+        from_user_id=from_id,
+        to_user_id=to_id,
+        amount=amt,
+        created_by=user,
+        note="",
+    )
+    _log_room_activity(
+        room,
+        user,
+        "settlement_received",
+        {
+            "settlementId": str(st.id),
+            "fromUserId": from_id,
+            "toUserId": to_id,
+            "amount": float(amt),
+        },
+    )
+    return JsonResponse(
+        {
+            "id": str(st.id),
+            "fromUserId": from_id,
+            "toUserId": to_id,
+            "amount": float(st.amount),
+        },
+        status=201,
+    )
+
+
+@require_GET
+def room_activities(request, room_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    room, e = _room_for_user(user, room_id)
+    if e:
+        return e
+    member_names = {
+        str(m.id): (m.first_name or m.username) for m in room.members.all()
+    }
+    items = []
+    for a in room.activities.all()[:200]:
+        items.append(
+            {
+                "id": str(a.id),
+                "kind": a.kind,
+                "payload": a.payload,
+                "actorId": str(a.actor_id),
+                "actorName": member_names.get(str(a.actor_id), "…"),
+                "createdAt": a.created_at.isoformat(),
+            }
+        )
+    return JsonResponse(items, safe=False)
 
 
 @require_GET
@@ -494,16 +824,8 @@ def room_balance(request, room_id):
     member_names = {
         str(m.id): (m.first_name or m.username) for m in room.members.all()
     }
-    raw_bal = {mid: 0.0 for mid in member_ids}
-    for ex in room.expenses.all():
-        pid = str(ex.payer_id)
-        raw_bal[pid] = raw_bal.get(pid, 0) + float(ex.amount)
-        tw = sum(float(ex.shares.get(mid, 0) or 0) for mid in member_ids)
-        if tw <= 0:
-            continue
-        for mid in member_ids:
-            w = float(ex.shares.get(mid, 0) or 0)
-            raw_bal[mid] -= float(ex.amount) * w / tw
+    raw_bal = _raw_balances_from_expenses(room)
+    raw_bal = _apply_settlements_to_balances(room, raw_bal)
     named = {
         member_names[k]: round(v, 2) for k, v in raw_bal.items()
     }
@@ -523,9 +845,13 @@ def room_balance(request, room_id):
         fid, tid = str(t["from"]), str(t["to"])
         amt = t["amount"]
         if fid == vid:
-            pay_to.append({"toName": member_names[tid], "amount": amt})
+            pay_to.append(
+                {"toUserId": tid, "toName": member_names[tid], "amount": amt}
+            )
         if tid == vid:
-            receive_from.append({"fromName": member_names[fid], "amount": amt})
+            receive_from.append(
+                {"fromUserId": fid, "fromName": member_names[fid], "amount": amt}
+            )
     per_member = {}
     for mid in member_ids:
         pt = []
@@ -534,9 +860,13 @@ def room_balance(request, room_id):
             fid, tid = str(t["from"]), str(t["to"])
             amt = t["amount"]
             if fid == mid:
-                pt.append({"toName": member_names[tid], "amount": amt})
+                pt.append(
+                    {"toUserId": tid, "toName": member_names[tid], "amount": amt}
+                )
             if tid == mid:
-                rf.append({"fromName": member_names[fid], "amount": amt})
+                rf.append(
+                    {"fromUserId": fid, "fromName": member_names[fid], "amount": amt}
+                )
         per_member[member_names[mid]] = {"payTo": pt, "receiveFrom": rf}
     return JsonResponse(
         {
