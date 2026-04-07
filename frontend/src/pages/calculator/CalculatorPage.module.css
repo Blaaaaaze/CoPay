@@ -1,3 +1,251 @@
+.pageCompact {
+  padding: 0.35rem 0 0.2rem;
+}
+
+.pageCompact :global(.page-title) {
+  margin-bottom: 0.1rem;
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+}
+
+.pageCompact :global(.fw-panel) {
+  margin-bottom: 0;
+  padding: 0.75rem 1rem 0.95rem;
+}
+
+.pageCompact :global(.fw-input-row) {
+  margin-bottom: 0.45rem;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.35rem 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.titleRow :global(.page-title) {
+  margin-bottom: 0;
+  flex: 1 1 12rem;
+}
+
+.sectionHeadingRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0 0 0.35rem;
+  flex-shrink: 0;
+}
+
+.sectionHeadingRow :global(h2) {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.introHintWrap {
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.headingHintWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0;
+  margin-top: 0;
+}
+
+.introHintBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  cursor: help;
+  line-height: 1;
+}
+
+.introHintBtn:hover,
+.introHintBtn:focus-visible {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  outline: none;
+}
+
+.introInlinePanel {
+  margin: 0 0 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--text);
+  max-height: min(38vh, 15rem);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  flex-shrink: 0;
+}
+
+.participantsStaticHint {
+  flex-shrink: 0;
+}
+
+.participantsScrollArea {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wizardShell {
+  width: 100%;
+  min-width: 0;
+}
+
+.wizardViewport {
+  --calc-wizard-h: min(calc(100dvh - 6.5rem), 56rem);
+  position: relative;
+  height: var(--calc-wizard-h);
+  max-height: var(--calc-wizard-h);
+  width: 100%;
+  overflow: hidden;
+  display: grid;
+  grid-template: 1fr / 1fr;
+  align-items: stretch;
+  isolation: isolate;
+}
+
+.wizardStep {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  opacity: 0;
+  transform: translateY(0.85rem);
+  transition:
+    opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.85s;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wizardStepActive {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 1;
+  transition:
+    opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wizardStep,
+  .wizardStepActive {
+    transition-duration: 0.01ms;
+  }
+}
+
+.wizardStep .formPanel {
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.productsBody {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0.35rem;
+}
+
+.productsFormBlock {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(20rem, 38vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.productsListBlock {
+  flex: 1 1 0;
+  min-height: min(11rem, 32vh);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-top: 0.15rem;
+}
+
+.productsListBlock > h3 {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.personsGridInForm {
+  max-height: min(9rem, 22vh);
+  overflow-y: auto;
+  margin-bottom: 0.45rem;
+  scrollbar-gutter: stable;
+}
+
+.formPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.productsFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.productsFooter .submitForm {
+  align-items: flex-end;
+  margin-left: auto;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -6,55 +254,124 @@
   margin-bottom: 1rem;
 }
 
+.inputHintErr {
+  display: block;
+  width: 100%;
+  margin-top: -0.35rem;
+}
+
 .personAddRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
+  flex-shrink: 0;
 }
 
 .personAddRow .fw-base-input {
-  flex: 1 1 200px;
+  min-width: 0;
   margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .personAddRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .personAddRow .fw-base-input {
+    grid-column: 1 / -1;
+  }
+}
+
+.addProductRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.mappingViewport {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-right: 0.1rem;
+}
+
+.mappingCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.1rem 1.15rem;
+  margin-bottom: 0.75rem;
+  background: var(--page-bg);
+  min-height: 8.5rem;
+}
+
+.mappingCardTitle {
+  font-weight: 600;
+  margin-bottom: 0.65rem;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.mappingSelectLabel {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.mappingMultiSelect {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--page-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.mappingMultiSelect:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
 }
 
 .personList {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(11.5rem, 1fr));
+  gap: 0.45rem 0.55rem;
+  align-content: start;
+  grid-auto-rows: minmax(2.45rem, auto);
+  min-height: min-content;
+  width: 100%;
 }
 
-.scrollableViewport {
-  --calc-row-height: 2.85rem;
-  --calc-row-gap: 0.35rem;
-  max-height: calc(
-    var(--calc-visible-rows, 5) * var(--calc-row-height) +
-      (var(--calc-visible-rows, 5) - 1) * var(--calc-row-gap)
-  );
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-width: 0;
-  scrollbar-gutter: stable;
+@media (max-width: 520px) {
+  .personList {
+    grid-template-columns: 1fr;
+  }
 }
 
-.personsGridScroll.scrollableViewport {
-  --calc-row-height: 2.2rem;
-  --calc-row-gap: 0.5rem;
+.personsGridScroll {
+  margin-bottom: 0.5rem;
 }
 
 .productList {
   list-style: none;
   padding: 0;
   margin: 0;
-}
-
-.productListScroll.scrollableViewport {
-  --calc-row-height: 3.45rem;
-  --calc-row-gap: 0.5rem;
 }
 
 .productList :global(.fw-product-item) {
@@ -66,16 +383,72 @@
   overflow-wrap: anywhere;
 }
 
+.productLineMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+}
+
+.productLineEditable {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.12rem 0.2rem;
+  margin: -0.12rem -0.2rem;
+  transition: background 0.12s ease;
+}
+
+.productLineEditable:hover {
+  background: var(--surface-2);
+}
+
+.productLineEditRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.productLineEditRow .fw-base-input {
+  margin-bottom: 0;
+}
+
+.productLineEditName {
+  flex: 2 1 8rem;
+  min-width: 0;
+}
+
+.productLineEditPrice {
+  flex: 1 1 5rem;
+  min-width: 4rem;
+  max-width: 10rem;
+}
+
+.productLineEditCurrency {
+  flex: 0 1 7rem;
+  min-width: 5.5rem;
+}
+
 .personRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  min-height: 2.45rem;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--page-bg);
   min-width: 0;
+}
+
+.personRowEditing {
+  grid-column: 1 / -1;
 }
 
 .personDelBtn {
@@ -87,16 +460,18 @@
   flex: 1;
   min-width: 0;
   margin: 0;
-  padding: 0.35rem 0.5rem;
+  padding: 0.2rem 0.35rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   font: inherit;
+  font-size: 0.92rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
   color: var(--text);
   overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 
 .personNameBtn:hover {
@@ -111,6 +486,9 @@
 .personEditInput {
   flex: 1;
   margin-bottom: 0;
+  min-width: 0;
+  font-size: 0.92rem;
+  padding: 0.3rem 0.45rem;
 }
 
 .splitHint {

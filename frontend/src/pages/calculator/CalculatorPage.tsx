@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { api } from "../../shared/api/client";
 import { useI18n } from "../../shared/i18n/I18nContext";
@@ -8,17 +7,9 @@ import { ReceiptUploadModal } from "./ReceiptUploadModal";
 import formStyles from "../FormPage.module.css";
 import styles from "./CalculatorPage.module.css";
 
-/** Сколько строк списка показывать без вертикальной прокрутки (см. scrollableViewport в CSS). */
-const CALC_LIST_MAX_VISIBLE_ROWS = 5;
-
 type Participant = { id: number; name: string };
 
-type ProductRow = {
-  name: string;
-  price: number;
-  participants: string[];
-  dividedPrice: number;
-};
+type ProductLine = { name: string; price: number; currency: string };
 
 type SplitResponse = {
   id: string;
@@ -36,50 +27,67 @@ type AdhocDetail = {
   currency?: string;
 };
 
+type WizardStep = "participants" | "purchases" | "mapping";
+
+type LineEditDraft = { name: string; price: string; currency: string };
+
 export function CalculatorPage() {
   const { t } = useI18n();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [draftName, setDraftName] = useState("");
-  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [productLines, setProductLines] = useState<ProductLine[]>([]);
+  const [lineParticipants, setLineParticipants] = useState<string[][]>([]);
   const [currency, setCurrency] = useState("RUB");
   const [prodName, setProdName] = useState("");
   const [prodPrice, setProdPrice] = useState("");
-  const [selectedNames, setSelectedNames] = useState<string[]>([]);
-  const [splitAmongAll, setSplitAmongAll] = useState(false);
   const [err, setErr] = useState("");
+  const [duplicateNameErr, setDuplicateNameErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [wizardStep, setWizardStep] = useState<WizardStep>("participants");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState("");
+  const [editingProductIdx, setEditingProductIdx] = useState<number | null>(null);
+  const [editLineDraft, setEditLineDraft] = useState<LineEditDraft>({
+    name: "",
+    price: "",
+    currency: "RUB",
+  });
   const [resultDetail, setResultDetail] = useState<AdhocDetail | null>(null);
   const [shareUrl, setShareUrl] = useState("");
+  const [introOpen, setIntroOpen] = useState(true);
   const resultWrapRef = useRef<HTMLDivElement>(null);
   const personEditInputRef = useRef<HTMLInputElement>(null);
+  const productEditNameRef = useRef<HTMLInputElement>(null);
 
   const namedList = participants.map((p) => p.name.trim()).filter(Boolean);
 
   useEffect(() => {
-    if (!splitAmongAll) return;
-    setSelectedNames([...namedList]);
-  }, [splitAmongAll, participants]);
-
-  useEffect(() => {
     if (editingId == null) return;
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       personEditInputRef.current?.focus();
       personEditInputRef.current?.select();
     }, 0);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [editingId]);
+
+  useEffect(() => {
+    if (editingProductIdx == null) return;
+    const timer = window.setTimeout(() => {
+      productEditNameRef.current?.focus();
+      productEditNameRef.current?.select();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [editingProductIdx]);
 
   function addParticipant() {
     const n = draftName.trim();
     if (!n) return;
-    if (participants.length >= 10) return;
     if (namedList.some((x) => x.toLowerCase() === n.toLowerCase())) {
-      setErr(t("calc.duplicateName"));
+      setDuplicateNameErr(t("calc.duplicateName"));
       return;
     }
+    setDuplicateNameErr("");
     setErr("");
     setParticipants((prev) => [...prev, { id: Date.now() + Math.random(), name: n }]);
     setDraftName("");
@@ -90,15 +98,7 @@ export function CalculatorPage() {
     const name = p?.name.trim();
     setParticipants((prev) => prev.filter((x) => x.id !== id));
     if (name) {
-      setProducts((prev) =>
-        prev
-          .map((pr) => ({
-            ...pr,
-            participants: pr.participants.filter((x) => x !== name),
-          }))
-          .filter((pr) => pr.participants.length > 0)
-      );
-      setSelectedNames((prev) => prev.filter((x) => x !== name));
+      setLineParticipants((prev) => prev.map((row) => row.filter((x) => x !== name)));
     }
     setEditingId(null);
   }
@@ -119,68 +119,102 @@ export function CalculatorPage() {
       .map((x) => x.name.trim())
       .filter(Boolean);
     if (otherNames.some((x) => x.toLowerCase() === next.toLowerCase())) {
-      setErr(t("calc.duplicateName"));
+      setDuplicateNameErr(t("calc.duplicateName"));
       return;
     }
+    setDuplicateNameErr("");
     setErr("");
     setParticipants((prev) =>
       prev.map((x) => (x.id === editingId ? { ...x, name: next } : x))
     );
     if (oldName && oldName !== next) {
-      setProducts((prev) =>
-        prev.map((pr) => ({
-          ...pr,
-          participants: pr.participants.map((x) => (x === oldName ? next : x)),
-        }))
+      setLineParticipants((prev) =>
+        prev.map((row) => row.map((x) => (x === oldName ? next : x)))
       );
-      setSelectedNames((prev) => prev.map((x) => (x === oldName ? next : x)));
     }
     setEditingId(null);
   }
 
-  function toggleParticipant(name: string) {
-    if (splitAmongAll) return;
-    setSelectedNames((prev) =>
-      prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]
-    );
-  }
-
-  function addProduct(e: React.FormEvent) {
+  function addProductLine(e: React.FormEvent) {
     e.preventDefault();
-    const parts = splitAmongAll ? [...namedList] : [...selectedNames];
-    if (!prodName.trim() || !prodPrice || parts.length === 0) return;
+    if (!prodName.trim() || !prodPrice) return;
     const price = parseFloat(prodPrice.replace(",", "."));
     if (!price || price <= 0) return;
-    const dividedPrice = price / parts.length;
-    setProducts((prev) => [
+    setProductLines((prev) => [
       ...prev,
-      {
-        name: prodName.trim(),
-        price,
-        participants: parts,
-        dividedPrice,
-      },
+      { name: prodName.trim(), price, currency: currency.toUpperCase().slice(0, 8) },
     ]);
+    setLineParticipants((prev) => [...prev, []]);
     setProdName("");
     setProdPrice("");
-    if (!splitAmongAll) setSelectedNames([]);
+    setErr("");
   }
 
-  function removeProduct(i: number) {
-    setProducts((prev) => prev.filter((_, j) => j !== i));
+  function removeProductLine(i: number) {
+    setProductLines((prev) => prev.filter((_, j) => j !== i));
+    setLineParticipants((prev) => prev.filter((_, j) => j !== i));
+    setEditingProductIdx((cur) => {
+      if (cur === null) return null;
+      if (cur === i) return null;
+      if (cur > i) return cur - 1;
+      return cur;
+    });
   }
 
-  function editProduct(i: number) {
-    const p = products[i];
-    setProdName(p.name);
-    setProdPrice(String(p.price));
-    setSelectedNames([...p.participants]);
-    setSplitAmongAll(
-      namedList.length > 0 &&
-        p.participants.length === namedList.length &&
-        namedList.every((n) => p.participants.includes(n))
+  function startEditProduct(i: number) {
+    const p = productLines[i];
+    setEditingProductIdx(i);
+    setEditLineDraft({
+      name: p.name,
+      price: String(p.price),
+      currency: p.currency || "RUB",
+    });
+  }
+
+  function saveEditProduct() {
+    if (editingProductIdx == null) return;
+    const name = editLineDraft.name.trim();
+    const price = parseFloat(editLineDraft.price.replace(",", "."));
+    const cur = editLineDraft.currency.toUpperCase().slice(0, 8);
+    const c = cur === "USD" || cur === "EUR" || cur === "RUB" ? cur : "RUB";
+    if (!name || !price || price <= 0) return;
+    const idx = editingProductIdx;
+    setProductLines((prev) =>
+      prev.map((x, j) => (j === idx ? { name, price, currency: c } : x))
     );
-    removeProduct(i);
+    setEditingProductIdx(null);
+  }
+
+  function cancelEditProduct() {
+    setEditingProductIdx(null);
+  }
+
+  function goToPurchases() {
+    setErr("");
+    if (namedList.length === 0) {
+      setErr(t("calc.needParticipants"));
+      return;
+    }
+    setWizardStep("purchases");
+  }
+
+  function goToMapping() {
+    setErr("");
+    if (productLines.length === 0) {
+      setErr(t("calc.needItems"));
+      return;
+    }
+    setLineParticipants((prev) => {
+      const next = [...prev];
+      while (next.length < productLines.length) next.push([]);
+      return next.slice(0, productLines.length);
+    });
+    setWizardStep("mapping");
+  }
+
+  function splitCurrency(): string {
+    if (productLines.length === 0) return currency;
+    return productLines[0].currency;
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -191,8 +225,16 @@ export function CalculatorPage() {
       setErr(t("calc.needParticipants"));
       return;
     }
-    if (products.length === 0) {
+    if (productLines.length === 0) {
       setErr(t("calc.needItems"));
+      return;
+    }
+    if (lineParticipants.length !== productLines.length) {
+      setErr(t("calc.needMapping"));
+      return;
+    }
+    if (lineParticipants.some((row) => row.length === 0)) {
+      setErr(t("calc.needMapping"));
       return;
     }
     setLoading(true);
@@ -203,11 +245,11 @@ export function CalculatorPage() {
         method: "POST",
         body: JSON.stringify({
           payer,
-          currency,
-          products: products.map((p) => ({
+          currency: splitCurrency(),
+          products: productLines.map((p, i) => ({
             name: p.name,
             price: p.price,
-            participants: p.participants,
+            participants: lineParticipants[i],
           })),
         }),
       });
@@ -255,216 +297,418 @@ export function CalculatorPage() {
       return { name, items, total };
     }) ?? [];
 
-  const resultCur = resultDetail?.currency || currency;
+  const resultCur = resultDetail?.currency || splitCurrency();
 
-  const listScrollStyle = {
-    ["--calc-visible-rows" as string]: CALC_LIST_MAX_VISIBLE_ROWS,
-  } as React.CSSProperties;
+  const stepParticipantsCls = `${styles.wizardStep} ${wizardStep === "participants" ? styles.wizardStepActive : ""}`;
+  const stepPurchasesCls = `${styles.wizardStep} ${wizardStep === "purchases" ? styles.wizardStepActive : ""}`;
+  const stepMappingCls = `${styles.wizardStep} ${wizardStep === "mapping" ? styles.wizardStepActive : ""}`;
 
   return (
-    <div className="container page-hero">
-      <h1 className="page-title">{t("calc.title")}</h1>
+    <div className={`container ${styles.pageCompact}`}>
+      <div className={styles.titleRow}>
+        <h1 className="page-title">{t("calc.title")}</h1>
+      </div>
 
       <div className="calc-layout">
-        <p className="section-text calc-span-2" style={{ marginTop: 0 }}>
-          {t("calc.intro")}
-        </p>
-
-        <div className={`${styles.toolbar} calc-span-2`}>
-          <button type="button" className="btn-ghost" onClick={() => setReceiptOpen(true)}>
-            {t("calc.receiptOpenBtn")}
-          </button>
-        </div>
-
-        <div className="fw-panel">
-          <h2>{t("calc.participants")}</h2>
-          <p className={formStyles.subtle} style={{ marginTop: 0, fontSize: "0.88rem" }}>
-            {t("calc.implicitPayerHint")}
-          </p>
-          <div className={styles.personAddRow}>
-            <input
-              className="fw-base-input"
-              value={draftName}
-              onChange={(e) => setDraftName(e.target.value)}
-              placeholder={t("calc.participantPlaceholder")}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addParticipant())}
-            />
-            <button
-              type="button"
-              className="fw-btn fw-btn-add"
-              onClick={addParticipant}
-              disabled={participants.length >= 10}
+        <div className={`${styles.wizardShell} calc-span-2`}>
+          <div className={styles.wizardViewport}>
+            <div
+              className={stepParticipantsCls}
+              aria-hidden={wizardStep !== "participants"}
+              {...(wizardStep !== "participants" ? { inert: true as const } : {})}
             >
-              {t("calc.addParticipant")}
-            </button>
-          </div>
-          {participants.length >= 10 && (
-            <p className="err" style={{ marginBottom: "0.5rem" }}>
-              {t("calc.maxPeople")}
-            </p>
-          )}
-          <ul
-            className={`${styles.personList} ${styles.scrollableViewport}`}
-            style={listScrollStyle}
-          >
-            {participants.map((p) => (
-              <li key={p.id} className={styles.personRow}>
-                <button
-                  type="button"
-                  className={`fw-btn fw-btn-del item-btn ${styles.personDelBtn}`}
-                  onClick={() => removeParticipant(p.id)}
-                  aria-label={t("common.delete")}
+              <div className={`fw-panel ${styles.formPanel}`}>
+                <div className={styles.sectionHeadingRow}>
+                  <h2>
+                    {t("calc.participants")}
+                    <span className={`${styles.introHintWrap} ${styles.headingHintWrap}`}>
+                      <button
+                        type="button"
+                        className={styles.introHintBtn}
+                        aria-label={t("calc.introHintAria")}
+                        aria-expanded={introOpen}
+                        aria-controls="calc-intro-panel"
+                        onClick={() => setIntroOpen((v) => !v)}
+                      >
+                        i
+                      </button>
+                    </span>
+                  </h2>
+                </div>
+                <div
+                  id="calc-intro-panel"
+                  className={styles.introInlinePanel}
+                  role="region"
+                  aria-label={t("calc.introHintAria")}
+                  hidden={!introOpen}
                 >
-                  ×
-                </button>
-                {editingId === p.id ? (
-                  <>
-                    <input
-                      ref={personEditInputRef}
-                      className={`fw-base-input ${styles.personEditInput}`}
-                      value={editDraft}
-                      onChange={(e) => setEditDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") saveEdit();
-                        if (e.key === "Escape") setEditingId(null);
-                      }}
-                    />
-                    <button type="button" className="btn-ghost" onClick={saveEdit}>
-                      {t("common.save")}
-                    </button>
-                  </>
-                ) : (
+                  {t("calc.intro")}
+                </div>
+                <p
+                  className={`${formStyles.subtle} ${styles.participantsStaticHint}`}
+                  style={{ marginTop: 0, fontSize: "0.88rem" }}
+                >
+                  {t("calc.implicitPayerHint")}
+                </p>
+                <div className={styles.personAddRow}>
+                  <input
+                    className="fw-base-input"
+                    value={draftName}
+                    onChange={(e) => {
+                      setDraftName(e.target.value);
+                      setDuplicateNameErr("");
+                    }}
+                    placeholder={t("calc.participantPlaceholder")}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addParticipant())}
+                  />
+                  <button type="button" className="btn-primary" onClick={addParticipant}>
+                    {t("calc.addParticipant")}
+                  </button>
+                  <button type="button" className="btn-primary" onClick={goToPurchases}>
+                    {t("calc.next")}
+                  </button>
+                </div>
+                {duplicateNameErr && (
+                  <p
+                    className={`err ${styles.inputHintErr} ${styles.participantsStaticHint}`}
+                    style={{ margin: "0 0 0.65rem" }}
+                  >
+                    {duplicateNameErr}
+                  </p>
+                )}
+                <div className={styles.participantsScrollArea}>
+                  <ul className={styles.personList}>
+                    {participants.map((p) => (
+                      <li
+                        key={p.id}
+                        className={`${styles.personRow} ${editingId === p.id ? styles.personRowEditing : ""}`}
+                      >
+                        <button
+                          type="button"
+                          className={`fw-btn fw-btn-del item-btn ${styles.personDelBtn}`}
+                          onClick={() => removeParticipant(p.id)}
+                          aria-label={t("common.delete")}
+                        >
+                          ×
+                        </button>
+                        {editingId === p.id ? (
+                          <>
+                            <input
+                              ref={personEditInputRef}
+                              className={`fw-base-input ${styles.personEditInput}`}
+                              value={editDraft}
+                              onChange={(e) => {
+                                setEditDraft(e.target.value);
+                                setDuplicateNameErr("");
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") saveEdit();
+                                if (e.key === "Escape") setEditingId(null);
+                              }}
+                            />
+                            <button type="button" className="btn-ghost" onClick={saveEdit}>
+                              {t("common.save")}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.personNameBtn}
+                            onClick={() => startEdit(p)}
+                          >
+                            {p.name || "—"}
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {err && wizardStep === "participants" && (
+                  <p className={`err ${styles.participantsStaticHint}`} style={{ margin: "0.75rem 0 0" }}>
+                    {err}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div
+              className={stepPurchasesCls}
+              aria-hidden={wizardStep !== "purchases"}
+              {...(wizardStep !== "purchases" ? { inert: true as const } : {})}
+            >
+              <div className={`fw-panel ${styles.formPanel}`}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "0.75rem",
+                    marginBottom: "0.5rem",
+                    flexShrink: 0,
+                  }}
+                >
+                  <h2 style={{ margin: 0 }}>{t("calc.purchasesStepTitle")}</h2>
                   <button
                     type="button"
-                    className={styles.personNameBtn}
-                    onClick={() => startEdit(p)}
+                    className="btn-ghost"
+                    onClick={() => {
+                      setErr("");
+                      setWizardStep("participants");
+                    }}
                   >
-                    {p.name || "—"}
+                    {t("calc.back")}
                   </button>
+                </div>
+                <div className={styles.productsBody}>
+                  <div className={styles.productsFormBlock}>
+                    <form onSubmit={addProductLine}>
+                      <div className="fw-input-row">
+                        <span>{t("calc.itemName")}</span>
+                        <input
+                          className="fw-base-input"
+                          value={prodName}
+                          onChange={(e) => setProdName(e.target.value)}
+                          placeholder={t("calc.productPlaceholder")}
+                        />
+                      </div>
+                      <div className="fw-input-row">
+                        <span>{t("calc.itemPrice")}</span>
+                        <div className={styles.priceCurrencyRow}>
+                          <input
+                            className="fw-base-input"
+                            value={prodPrice}
+                            onChange={(e) => setProdPrice(e.target.value)}
+                            inputMode="decimal"
+                            placeholder="0"
+                          />
+                          <select
+                            className={`fw-base-input ${styles.currencySelect}`}
+                            value={currency}
+                            onChange={(e) => setCurrency(e.target.value)}
+                          >
+                            <option value="RUB">{t("currency.rub")}</option>
+                            <option value="USD">{t("currency.usd")}</option>
+                            <option value="EUR">{t("currency.eur")}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className={styles.addProductRow}>
+                        <button className="btn-primary" type="submit">
+                          {t("common.add")}
+                        </button>
+                        <button type="button" className="btn-primary" onClick={goToMapping}>
+                          {t("calc.next")}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <div className={styles.productsListBlock}>
+                    <h3>{t("calc.itemsList")}</h3>
+                    {productLines.length === 0 ? (
+                      <p className={formStyles.subtle}>{t("calc.itemsEmpty")}</p>
+                    ) : (
+                      <ul className={styles.productList}>
+                        {productLines.map((line, index) => (
+                          <li key={index} className="fw-product-item">
+                            <div className={styles.productLineMain}>
+                              {editingProductIdx === index ? (
+                                <div className={styles.productLineEditRow}>
+                                  <input
+                                    ref={productEditNameRef}
+                                    className={`fw-base-input ${styles.productLineEditName}`}
+                                    value={editLineDraft.name}
+                                    onChange={(e) =>
+                                      setEditLineDraft((d) => ({ ...d, name: e.target.value }))
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") saveEditProduct();
+                                      if (e.key === "Escape") cancelEditProduct();
+                                    }}
+                                  />
+                                  <input
+                                    className={`fw-base-input ${styles.productLineEditPrice}`}
+                                    value={editLineDraft.price}
+                                    onChange={(e) =>
+                                      setEditLineDraft((d) => ({ ...d, price: e.target.value }))
+                                    }
+                                    inputMode="decimal"
+                                  />
+                                  <select
+                                    className={`fw-base-input ${styles.currencySelect} ${styles.productLineEditCurrency}`}
+                                    value={editLineDraft.currency}
+                                    onChange={(e) =>
+                                      setEditLineDraft((d) => ({ ...d, currency: e.target.value }))
+                                    }
+                                  >
+                                    <option value="RUB">{t("currency.rub")}</option>
+                                    <option value="USD">{t("currency.usd")}</option>
+                                    <option value="EUR">{t("currency.eur")}</option>
+                                  </select>
+                                  <button type="button" className="btn-ghost" onClick={saveEditProduct}>
+                                    {t("common.save")}
+                                  </button>
+                                  <button type="button" className="btn-ghost" onClick={cancelEditProduct}>
+                                    {t("common.cancel")}
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <span
+                                    className={styles.productLineEditable}
+                                    onClick={() => startEditProduct(index)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        startEditProduct(index);
+                                      }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                  >
+                                    <strong>{line.name}</strong>
+                                  </span>
+                                  <span aria-hidden>—</span>
+                                  <span
+                                    className={styles.productLineEditable}
+                                    onClick={() => startEditProduct(index)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        startEditProduct(index);
+                                      }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                  >
+                                    {line.price}
+                                  </span>
+                                  <span
+                                    className={styles.productLineEditable}
+                                    onClick={() => startEditProduct(index)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        startEditProduct(index);
+                                      }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                  >
+                                    {line.currency}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <div className="fw-product-actions">
+                              <button
+                                type="button"
+                                className="fw-btn fw-btn-del item-btn"
+                                onClick={() => removeProductLine(index)}
+                                aria-label={t("common.delete")}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                {err && wizardStep === "purchases" && (
+                  <p className="err" style={{ margin: "0.5rem 0 0" }}>
+                    {err}
+                  </p>
                 )}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="fw-panel">
-          <h2>{t("calc.products")}</h2>
-          <form onSubmit={addProduct}>
-            <div className="fw-input-row">
-              <span>{t("calc.itemName")}</span>
-              <input
-                className="fw-base-input"
-                value={prodName}
-                onChange={(e) => setProdName(e.target.value)}
-                placeholder={t("calc.productPlaceholder")}
-              />
-            </div>
-            <div className="fw-input-row">
-              <span>{t("calc.itemPrice")}</span>
-              <div className={styles.priceCurrencyRow}>
-                <input
-                  className="fw-base-input"
-                  value={prodPrice}
-                  onChange={(e) => setProdPrice(e.target.value)}
-                  inputMode="decimal"
-                  placeholder="0"
-                />
-                <select
-                  className={`fw-base-input ${styles.currencySelect}`}
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                >
-                  <option value="RUB">{t("currency.rub")}</option>
-                  <option value="USD">{t("currency.usd")}</option>
-                  <option value="EUR">{t("currency.eur")}</option>
-                </select>
               </div>
             </div>
-            <label className="fw-check" style={{ display: "flex", marginBottom: "0.65rem" }}>
-              <input
-                type="checkbox"
-                checked={splitAmongAll}
-                onChange={(e) => setSplitAmongAll(e.target.checked)}
-                disabled={namedList.length === 0}
-              />
-              {t("calc.splitAll")}
-            </label>
-            {!splitAmongAll && (
-              <p className={styles.splitHint}>{t("calc.splitHint")}</p>
-            )}
-            {!splitAmongAll && (
-              <div
-                className={`fw-persons-grid ${styles.scrollableViewport} ${styles.personsGridScroll}`}
-                style={listScrollStyle}
-              >
-                {participants.map((person) => {
-                  const nm = person.name.trim();
-                  if (!nm) return null;
-                  return (
-                    <label key={person.id} className="fw-check">
-                      <input
-                        type="checkbox"
-                        checked={selectedNames.includes(nm)}
-                        onChange={() => toggleParticipant(nm)}
-                      />
-                      {nm}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            <button className="fw-btn fw-btn-add" type="submit" disabled={namedList.length === 0}>
-              {t("common.add")}
-            </button>
-          </form>
 
-          <h3 style={{ marginTop: "1.25rem" }}>{t("calc.itemsList")}</h3>
-          {products.length === 0 ? (
-            <p className={formStyles.subtle}>{t("calc.itemsEmpty")}</p>
-          ) : (
-            <ul
-              className={`${styles.productList} ${styles.scrollableViewport} ${styles.productListScroll}`}
-              style={listScrollStyle}
+            <div
+              className={stepMappingCls}
+              aria-hidden={wizardStep !== "mapping"}
+              {...(wizardStep !== "mapping" ? { inert: true as const } : {})}
             >
-              {products.map((product, index) => (
-                <li key={index} className="fw-product-item">
-                  <div>
-                    <strong>{product.name}</strong> — {product.price} {currency} · {t("calc.perPerson")}{" "}
-                    {product.dividedPrice.toFixed(2)}
-                    <div className={formStyles.subtle} style={{ fontSize: "0.85rem" }}>
-                      {product.participants.join(", ")}
+              <div className={`fw-panel ${styles.formPanel}`}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "0.75rem",
+                    marginBottom: "0.35rem",
+                    flexShrink: 0,
+                  }}
+                >
+                  <h2 style={{ margin: 0 }}>{t("calc.mappingStepTitle")}</h2>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => {
+                      setErr("");
+                      setWizardStep("purchases");
+                    }}
+                  >
+                    {t("calc.back")}
+                  </button>
+                </div>
+                <p className={formStyles.subtle} style={{ marginTop: 0, fontSize: "0.88rem" }}>
+                  {t("calc.mappingHint")}
+                </p>
+                <div className={styles.mappingViewport}>
+                  {productLines.map((line, i) => (
+                    <div key={i} className={styles.mappingCard}>
+                      <div className={styles.mappingCardTitle}>
+                        {line.name} — {line.price} {line.currency}
+                      </div>
+                      <label className={styles.mappingSelectLabel} htmlFor={`mapping-select-${i}`}>
+                        {t("calc.mappingSelectLabel")}
+                      </label>
+                      <select
+                        id={`mapping-select-${i}`}
+                        multiple
+                        className={styles.mappingMultiSelect}
+                        value={lineParticipants[i] ?? []}
+                        onChange={(e) => {
+                          const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+                          setLineParticipants((prev) => {
+                            const out = [...prev];
+                            out[i] = selected;
+                            return out;
+                          });
+                        }}
+                        size={Math.min(Math.max(namedList.length, 2), 8)}
+                      >
+                        {namedList.map((nm) => (
+                          <option key={nm} value={nm}>
+                            {nm}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  </div>
-                  <div className="fw-product-actions">
-                    <button
-                      type="button"
-                      className="fw-btn fw-btn-edit item-btn"
-                      onClick={() => editProduct(index)}
-                      aria-label={t("common.edit")}
-                    >
-                      ✎
+                  ))}
+                </div>
+                <div className={styles.productsFooter}>
+                  <button type="button" className="btn-ghost" onClick={() => setReceiptOpen(true)}>
+                    {t("calc.attachReceipt")}
+                  </button>
+                  <form className={styles.submitForm} onSubmit={onSubmit}>
+                    {err && wizardStep === "mapping" && (
+                      <p className="err" style={{ margin: 0 }}>
+                        {err}
+                      </p>
+                    )}
+                    <button type="submit" className="btn-primary" disabled={loading}>
+                      {loading ? t("expense.saving") : t("calc.calculate")}
                     </button>
-                    <button
-                      type="button"
-                      className="fw-btn fw-btn-del item-btn"
-                      onClick={() => removeProduct(index)}
-                      aria-label={t("common.delete")}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <form className={`calc-span-2 ${styles.submitForm}`} onSubmit={onSubmit}>
-          {err && <p className="err" style={{ margin: 0 }}>{err}</p>}
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? t("expense.saving") : t("calc.calculate")}
-          </button>
-        </form>
 
         {resultDetail && (
           <div className="calc-span-2" ref={resultWrapRef}>
@@ -535,10 +779,6 @@ export function CalculatorPage() {
             </div>
           </div>
         )}
-
-        <p className="calc-span-2" style={{ marginTop: "0.5rem" }}>
-          <Link to="/">{t("calc.homeLink")}</Link>
-        </p>
       </div>
 
       <ReceiptUploadModal open={receiptOpen} onClose={() => setReceiptOpen(false)} />
