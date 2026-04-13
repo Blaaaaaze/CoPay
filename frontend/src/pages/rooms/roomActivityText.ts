@@ -3,7 +3,6 @@ import type { RoomActivityItem } from "./roomTypes";
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
-/** Human-readable one-line description for activity feed */
 export function roomActivityLine(
   a: RoomActivityItem,
   t: Translate,

@@ -10,9 +10,7 @@ type Props = {
   title: string;
   children: ReactNode;
   onClose: () => void;
-  /** Wider dialog panel (e.g. expense wizard) */
   wide?: boolean;
-  /** Extra class for the body area below the header */
   bodyClassName?: string;
 };
 

@@ -11,7 +11,6 @@ export function applyThemeToDocument(theme: string, accent: string) {
   document.documentElement.setAttribute("data-accent", accent || "mint");
 }
 
-/** Синхронизация темы/языка из профиля и localStorage */
 export function PreferenceSync() {
   const { user } = useAuth();
   const { setLang } = useI18n();

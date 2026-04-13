@@ -31,7 +31,6 @@ export type RoomExpense = {
   title: string;
   amount: number;
   payerId: string;
-  /** Кто создал запись расхода (может редактировать и удалять) */
   createdById: string;
   shares: Record<string, number>;
   lineItems?: LineItemStored[];

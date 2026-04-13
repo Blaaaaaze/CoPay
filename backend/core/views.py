@@ -1,4 +1,6 @@
 import json
+import logging
+import os
 import secrets
 import uuid
 from collections import defaultdict
@@ -24,6 +26,8 @@ from .models import (
     User,
 )
 from .settlement import simplify_debts
+
+logger = logging.getLogger(__name__)
 
 
 def _body(request) -> dict:
@@ -306,7 +310,6 @@ def room_detail(request, room_id):
         return e
     if request.method == "GET":
         return JsonResponse(_room_detail_json(room))
-    # PATCH — только создатель меняет название
     if room.created_by_id != user.id:
         return JsonResponse(
             {"error": "Только создатель может редактировать комнату"}, status=403
@@ -727,7 +730,6 @@ def room_settlement_full(request, room_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def room_settlement_received(request, room_id):
-    """Текущий пользователь фиксирует, что участник отправил ему деньги (долг перед ним погашен)."""
     user, err = _require_auth(request)
     if err:
         return err
@@ -1023,22 +1025,59 @@ def adhoc_get(request, public_id):
     )
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def mock_parse_receipt(request):
-    data = _body(request)
-    file_name = data.get("fileName")
-    note = (
-        f"Демо-разбор для «{file_name}». Подключите внешний API OCR для реальных чеков."
-        if file_name
-        else "Демо-данные. Подключите внешний API OCR."
-    )
+@require_GET
+def receipts_health(_request):
+    ocr = (os.environ.get("RECEIPT_OCR_BASE_URL") or "").strip()
+    backend = "ocr" if ocr else "none"
     return JsonResponse(
         {
-            "items": [
-                {"name": "Позиция 1", "qty": 1, "price": 120.5},
-                {"name": "Позиция 2", "qty": 2, "price": 89.0},
-            ],
-            "note": note,
+            "ok": True,
+            "service": "copay-api",
+            "ocrApiConfigured": bool(ocr),
+            "parseBackend": backend,
         }
+    )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def receipts_parse(request):
+    f = request.FILES.get("file")
+    if not f:
+        return JsonResponse({"detail": "Файл не передан (ожидается поле file)."}, status=400)
+    ct = (getattr(f, "content_type", None) or "").lower()
+    if "pdf" in ct:
+        return JsonResponse(
+            {
+                "detail": "PDF пока не поддерживается — загрузите фото (JPG, PNG, WebP).",
+            },
+            status=400,
+        )
+    raw = f.read()
+    max_size = 15 * 1024 * 1024
+    if len(raw) > max_size:
+        return JsonResponse({"detail": "Файл слишком большой (макс. 15 МБ)"}, status=400)
+    if not raw:
+        return JsonResponse({"detail": "Пустой файл"}, status=400)
+
+    from .receipt_ocr_client import get_ocr_base_url, recognize_via_ocr_api
+
+    if get_ocr_base_url():
+        try:
+            fname = getattr(f, "name", None) or "receipt.jpg"
+            result = recognize_via_ocr_api(raw, fname)
+        except ValueError as e:
+            return JsonResponse({"detail": str(e)}, status=400)
+        except RuntimeError as e:
+            return JsonResponse({"detail": str(e)}, status=502)
+        except Exception:
+            logger.exception("receipts_parse ocr_api")
+            return JsonResponse({"detail": "Не удалось обработать изображение (OCR API)"}, status=500)
+        return JsonResponse(result)
+
+    return JsonResponse(
+        {
+            "detail": "Задайте RECEIPT_OCR_BASE_URL (внешний POST /recognize).",
+        },
+        status=503,
     )

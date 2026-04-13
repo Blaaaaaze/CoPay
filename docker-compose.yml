@@ -1,37 +1,77 @@
 services:
+
   api:
+
     build: ./backend
+
     environment:
+
       DJANGO_DEBUG: "0"
+
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-change-me-in-production}
+
       JWT_SECRET: ${JWT_SECRET:-copay-dev-secret-change-in-production}
+
       DATA_DIR: /app/data
+
+      # Внешний OCR (проект API: POST /recognize). Из контейнера до хоста: host.docker.internal
+      RECEIPT_OCR_BASE_URL: ${RECEIPT_OCR_BASE_URL:-}
+
     volumes:
+
       - copay-data:/app/data
+
     expose:
+
       - "8000"
+
     healthcheck:
+
       test:
+
         [
+
           "CMD",
+
           "python",
+
           "-c",
+
           "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+
         ]
+
       interval: 5s
+
       timeout: 5s
+
       retries: 6
+
       start_period: 15s
+
     restart: unless-stopped
+
+
 
   web:
+
     build: ./frontend
+
     ports:
+
       - "8081:80"
+
     depends_on:
+
       api:
+
         condition: service_healthy
+
     restart: unless-stopped
 
+
+
 volumes:
+
   copay-data:
+

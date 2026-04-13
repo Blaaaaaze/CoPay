@@ -539,7 +539,6 @@
   padding-left: 1.1rem;
 }
 
-/* Высота как у .fw-base-input: 2px border + 0.5rem×2 padding + одна строка текста */
 .priceCurrencyRow {
   --calc-price-control-height: calc(4px + 1rem + 1.5em);
   display: flex;

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../shared/api/client";
+import { ReceiptParseButton } from "../../shared/receipt/ReceiptParseButton";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { Modal } from "../../ui/molecules/Modal";
 import { currencySymbol, formatMoney } from "../../shared/lib/currency";
+import { mergeDuplicateRoomLines } from "../../shared/lib/mergeDuplicateLines";
 import type { Member, RoomExpense } from "./roomTypes";
 import styles from "./ExpenseWizardModal.module.css";
 
@@ -132,7 +134,7 @@ export function ExpenseWizardModal({
         }
         body.amount = amt;
       } else {
-        const lineItems = lines
+        const lineItems = mergeDuplicateRoomLines(lines)
           .map((L) => ({
             name: L.name.trim(),
             amount: Number(L.amount.replace(",", ".")),
@@ -214,6 +216,36 @@ export function ExpenseWizardModal({
             />
             {t("expense.simpleSplit")}
           </label>
+
+          <div style={{ marginBottom: "0.85rem" }}>
+            <ReceiptParseButton
+              label={t("expense.receiptUpload")}
+              onError={(m) => setErr(m)}
+              onParsed={(items, _total, meta) => {
+                if (items.length === 0) {
+                  setErr(meta.note || "");
+                  return;
+                }
+                setErr("");
+                const newRows = items.map((it) => ({
+                  name: it.name,
+                  amount: String(Math.round(it.qty * it.price * 100) / 100),
+                  participantIds: [...memberIds],
+                }));
+                if (simpleMode) {
+                  setLines(
+                    newRows.length
+                      ? mergeDuplicateRoomLines(newRows)
+                      : [emptyLine(memberIds)]
+                  );
+                } else {
+                  setLines((prev) => mergeDuplicateRoomLines([...prev, ...newRows]));
+                }
+                setSimpleMode(false);
+                setSimpleAmount("");
+              }}
+            />
+          </div>
 
           {simpleMode ? (
             <div className="fw-input-row">

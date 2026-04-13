@@ -5,10 +5,6 @@ from typing import Any
 def shares_from_line_items(
     member_ids: set[str], line_items: list[dict[str, Any]]
 ) -> tuple[Decimal, dict[str, float], list[dict]]:
-    """
-    line_items: [{ "name": str, "amount": num, "participantIds": [uuid str, ...] }]
-    Returns (total_amount, shares_by_member_id, cleaned_line_items for storage).
-    """
     owed: dict[str, float] = {mid: 0.0 for mid in member_ids}
     total = Decimal(0)
     stored: list[dict] = []

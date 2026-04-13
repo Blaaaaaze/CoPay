@@ -1,4 +1,3 @@
-/* Тема и акценты на :root через data-атрибуты на html */
 html[data-theme="dark"] {
   --page-bg: #111816;
   --surface: #1a211e;
@@ -19,7 +18,6 @@ html[data-theme="light"] {
   --white: #ffffff;
 }
 
-/* Светлая тема — акценты как раньше */
 html[data-theme="light"][data-accent="mint"] {
   --mint-header: #7fd8b8;
   --mint-header-deep: #5ec9a4;
@@ -60,7 +58,6 @@ html[data-theme="light"][data-accent="purple"] {
   --link-blue: #5e35b1;
 }
 
-/* Тёмная тема — приглушённые акценты, без «кислотных» вставок */
 html[data-theme="dark"][data-accent="mint"] {
   --mint-header: #3d5a4f;
   --mint-header-deep: #344e45;
@@ -101,7 +98,6 @@ html[data-theme="dark"][data-accent="purple"] {
   --link-blue: #9488b0;
 }
 
-/* По умолчанию (до гидрации) считаем светлую mint */
 html:not([data-theme]) {
   --mint-header: #7fd8b8;
   --mint-header-deep: #5ec9a4;

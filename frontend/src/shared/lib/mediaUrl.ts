@@ -1,4 +1,3 @@
-/** Приводит абсолютный URL медиа к пути на текущем origin (прокси Vite / тот же хост). */
 export function normalizeMediaUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
   const s = url.trim();
@@ -9,7 +8,6 @@ export function normalizeMediaUrl(url: string | null | undefined): string | unde
       return u.pathname + u.search;
     }
   } catch {
-    /* ignore */
   }
   if (s.startsWith("/media/")) return s;
   return s;

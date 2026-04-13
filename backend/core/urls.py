@@ -23,5 +23,6 @@ urlpatterns = [
     path("rooms/<uuid:room_id>", views.room_detail),
     path("adhoc/split", views.adhoc_split),
     path("adhoc/<str:public_id>", views.adhoc_get),
-    path("receipts/mock-parse", views.mock_parse_receipt),
+    path("receipts/health", views.receipts_health),
+    path("receipts/parse", views.receipts_parse),
 ]

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { api } from "../../shared/api/client";
+import { ReceiptParseButton } from "../../shared/receipt/ReceiptParseButton";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { formatMoney } from "../../shared/lib/currency";
+import { mergeProductLinesWithParticipants } from "../../shared/lib/mergeDuplicateLines";
 import { ReceiptUploadModal } from "./ReceiptUploadModal";
 import formStyles from "../FormPage.module.css";
 import styles from "./CalculatorPage.module.css";
@@ -61,6 +63,9 @@ export function CalculatorPage() {
   const productEditNameRef = useRef<HTMLInputElement>(null);
 
   const namedList = participants.map((p) => p.name.trim()).filter(Boolean);
+
+  const linesRef = useRef({ productLines, lineParticipants });
+  linesRef.current = { productLines, lineParticipants };
 
   useEffect(() => {
     if (editingId == null) return;
@@ -140,11 +145,15 @@ export function CalculatorPage() {
     if (!prodName.trim() || !prodPrice) return;
     const price = parseFloat(prodPrice.replace(",", "."));
     if (!price || price <= 0) return;
-    setProductLines((prev) => [
-      ...prev,
-      { name: prodName.trim(), price, currency: currency.toUpperCase().slice(0, 8) },
-    ]);
-    setLineParticipants((prev) => [...prev, []]);
+    const curRaw = currency.toUpperCase().slice(0, 8);
+    const curNorm =
+      curRaw === "USD" || curRaw === "EUR" || curRaw === "RUB" ? curRaw : "RUB";
+    const newLine = { name: prodName.trim(), price, currency: curNorm };
+    const { productLines: pl, lineParticipants: lp } = linesRef.current;
+    const merged = mergeProductLinesWithParticipants([...pl, newLine], [...lp, []]);
+    setProductLines(merged.productLines);
+    setLineParticipants(merged.lineParticipants);
+    setEditingProductIdx(null);
     setProdName("");
     setProdPrice("");
     setErr("");
@@ -237,6 +246,7 @@ export function CalculatorPage() {
       setErr(t("calc.needMapping"));
       return;
     }
+    const merged = mergeProductLinesWithParticipants(productLines, lineParticipants);
     setLoading(true);
     setResultDetail(null);
     setShareUrl("");
@@ -246,10 +256,10 @@ export function CalculatorPage() {
         body: JSON.stringify({
           payer,
           currency: splitCurrency(),
-          products: productLines.map((p, i) => ({
+          products: merged.productLines.map((p, i) => ({
             name: p.name,
             price: p.price,
-            participants: lineParticipants[i],
+            participants: merged.lineParticipants[i],
           })),
         }),
       });
@@ -497,6 +507,37 @@ export function CalculatorPage() {
                         <button className="btn-primary" type="submit">
                           {t("common.add")}
                         </button>
+                        <ReceiptParseButton
+                          label={t("calc.receiptFromFile")}
+                          onError={(m) => setErr(m)}
+                          onParsed={(items, _tot, meta) => {
+                            if (items.length === 0) {
+                              setErr(meta.note || "");
+                              return;
+                            }
+                            setErr("");
+                            const curRaw = currency.toUpperCase().slice(0, 8);
+                            const curNorm =
+                              curRaw === "USD" || curRaw === "EUR" || curRaw === "RUB" ? curRaw : "RUB";
+                            const { productLines: pl, lineParticipants: lp } = linesRef.current;
+                            const appended = [
+                              ...pl,
+                              ...items.map((it) => ({
+                                name: it.name,
+                                price: Math.round(it.qty * it.price * 100) / 100,
+                                currency: curNorm,
+                              })),
+                            ];
+                            const appendedLp = [
+                              ...lp,
+                              ...items.map(() => [...namedList]),
+                            ];
+                            const merged = mergeProductLinesWithParticipants(appended, appendedLp);
+                            setProductLines(merged.productLines);
+                            setLineParticipants(merged.lineParticipants);
+                            setEditingProductIdx(null);
+                          }}
+                        />
                         <button type="button" className="btn-primary" onClick={goToMapping}>
                           {t("calc.next")}
                         </button>
@@ -781,7 +822,7 @@ export function CalculatorPage() {
         )}
       </div>
 
-      <ReceiptUploadModal open={receiptOpen} onClose={() => setReceiptOpen(false)} />
+      <ReceiptUploadModal open={receiptOpen} onClose={() => setReceiptOpen(false)} currency={currency} />
     </div>
   );
 }

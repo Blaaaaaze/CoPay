@@ -89,8 +89,6 @@ class Expense(models.Model):
 
 
 class Settlement(models.Model):
-    """Факт перевода между участниками для погашения долга (не расход)."""
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="settlements")
     from_user = models.ForeignKey(
@@ -117,8 +115,6 @@ class Settlement(models.Model):
 
 
 class RoomActivity(models.Model):
-    """Лента событий комнаты."""
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="activities")
     actor = models.ForeignKey(

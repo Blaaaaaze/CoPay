@@ -1,4 +1,3 @@
-/** Запасные строки до/вместо ответа API */
 export const FALLBACK_RU: Record<string, string> = {
   "nav.calc": "Расчёт",
   "nav.rooms": "Комнаты",
@@ -84,7 +83,7 @@ export const FALLBACK_RU: Record<string, string> = {
   "calc.receiptOpenBtn": "Загрузить изображение чека",
   "calc.receiptModalTitle": "Чек",
   "calc.receiptModalDesc":
-    "Загрузите фото или PDF. Автоматическое распознавание позиций будет добавлено позже; сейчас доступна только тестовая подсказка с сервера.",
+    "Загрузите фото чека (JPG, PNG). Сервер пересылает изображение в сервис OCR и извлекает позиции. Проверьте итог вручную.",
   "calc.receiptChooseFile": "Выбрать файл",
   "calc.receiptUploadBtn": "Отправить на сервер",
   "calc.receiptNoFile": "Сначала выберите файл",
@@ -117,8 +116,13 @@ export const FALLBACK_RU: Record<string, string> = {
   "calc.intro":
     "Добавьте участников, затем позиции чека и отметьте, кто в чём участвует. Итоговая сумма и доли считаются автоматически — регистрация не нужна.",
   "calc.receiptDemo": "Демо: разбор чека",
-  "calc.receiptHint": "Выберите файл — сервер вернёт тестовую подсказку (OCR подключается отдельно).",
+  "calc.receiptHint": "Загрузите фото — сервер распознаёт позиции через OCR-сервис (проверьте результат).",
+  "calc.receiptFromFile": "Загрузить чек",
   "calc.receiptUpload": "Загрузить изображение чека",
+  "calc.receiptParsedTotal": "Итого по чеку (если найдено)",
+  "calc.receiptParsedLines": "Распознанные позиции",
+  "calc.receiptLineSum": "сумма строки",
+  "calc.receiptOcrPreview": "Текст OCR (отладка)",
   "calc.personPlaceholder": "Участник {n}",
   "calc.maxPeople": "Максимум 10 участников",
   "calc.itemName": "Название",
@@ -158,6 +162,7 @@ export const FALLBACK_RU: Record<string, string> = {
   "expense.milkPh": "Молоко",
   "expense.removeLine": "Удалить строку",
   "expense.addLine": "+ Позиция",
+  "expense.receiptUpload": "Загрузить чек",
   "expense.create": "Создать",
   "expense.saving": "…",
   "expense.needAmount": "Укажите сумму",
@@ -225,7 +230,7 @@ export const FALLBACK_RU: Record<string, string> = {
     "Постоянные группы для квартиры, команды или семьи: учёт расходов, приглашение участников по имени или короткому коду, итоговые взаиморасчёты. Для комнат войдите в аккаунт.",
   "home.ocr.title": "Умное распознавание чеков",
   "home.ocr.text":
-    "Загрузите фото чека — внешний сервис OCR извлечёт позиции и суммы (в демо доступна заглушка). Так вы быстрее внесёте расходы в комнате или разовом расчёте.",
+    "Загрузите фото чека — сервер извлекает позиции и суммы через подключённый OCR-сервис. Так вы быстрее внесёте расходы в комнате или разовом расчёте.",
   "home.slide1": "Сканирование QR и позиций на чеке",
   "home.slide2": "Структурированные суммы и товары",
   "home.slide3": "Меньше ручного ввода — меньше ошибок",
@@ -320,7 +325,7 @@ export const FALLBACK_EN: Record<string, string> = {
   "calc.receiptOpenBtn": "Upload receipt image",
   "calc.receiptModalTitle": "Receipt",
   "calc.receiptModalDesc":
-    "Upload a photo or PDF. Auto line-item extraction comes later; for now the server returns a demo note only.",
+    "Upload a receipt photo (JPG, PNG). The server forwards the image to the OCR service to extract line items. Verify totals manually.",
   "calc.receiptChooseFile": "Choose file",
   "calc.receiptUploadBtn": "Send to server",
   "calc.receiptNoFile": "Choose a file first",
@@ -353,8 +358,13 @@ export const FALLBACK_EN: Record<string, string> = {
   "calc.intro":
     "Add people, then receipt lines and tick who shared each item. Totals and shares are calculated automatically — no signup required.",
   "calc.receiptDemo": "Demo: receipt parse",
-  "calc.receiptHint": "Pick a file — the server returns a sample hint (connect OCR separately).",
+  "calc.receiptHint": "Upload a photo — the server extracts items via the OCR service (verify the result).",
+  "calc.receiptFromFile": "Upload receipt",
   "calc.receiptUpload": "Upload receipt image",
+  "calc.receiptParsedTotal": "Receipt total (if detected)",
+  "calc.receiptParsedLines": "Parsed lines",
+  "calc.receiptLineSum": "line sum",
+  "calc.receiptOcrPreview": "OCR text (debug)",
   "calc.personPlaceholder": "Person {n}",
   "calc.maxPeople": "Up to 10 people",
   "calc.itemName": "Name",
@@ -393,6 +403,7 @@ export const FALLBACK_EN: Record<string, string> = {
   "expense.milkPh": "Milk",
   "expense.removeLine": "Remove line",
   "expense.addLine": "+ Line",
+  "expense.receiptUpload": "Upload receipt",
   "expense.create": "Create",
   "expense.saving": "…",
   "expense.needAmount": "Enter an amount",
@@ -459,7 +470,7 @@ export const FALLBACK_EN: Record<string, string> = {
     "Ongoing groups for flatmates or family: expenses, invites by name or short code, and balances. Rooms require an account.",
   "home.ocr.title": "Smart receipts",
   "home.ocr.text":
-    "Upload a receipt photo — OCR can extract lines and totals (demo returns a stub). Faster entry for rooms or one-off splits.",
+    "Upload a receipt photo — the server extracts lines and totals via the connected OCR service. Faster entry for rooms or one-off splits.",
   "home.slide1": "QR and line items on receipts",
   "home.slide2": "Structured amounts and products",
   "home.slide3": "Less typing — fewer mistakes",
@@ -473,7 +484,6 @@ export function fallbacksForLang(lang: string): Record<string, string> {
   return lang.startsWith("en") ? FALLBACK_EN : FALLBACK_RU;
 }
 
-/** Подстановка {name} в строке */
 export function interpolate(template: string, vars: Record<string, string | number>): string {
   let s = template;
   for (const [k, v] of Object.entries(vars)) {
