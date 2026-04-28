@@ -37,11 +37,11 @@
 }
 
 .roomItem {
-  border: 1px solid #e2ebe6;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem 1.15rem;
   margin-bottom: 0.75rem;
-  background: #fff;
+  background: var(--surface);
 }
 
 .roomHead {
@@ -151,10 +151,17 @@
   z-index: 20;
 }
 
-.roomsIntroHintWrap:hover .roomsIntroTooltip,
-.roomsIntroHintWrap:focus-within .roomsIntroTooltip {
-  opacity: 1;
-  visibility: visible;
+.roomsIntroInlinePanel {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+  max-height: min(38vh, 15rem);
+  overflow-y: auto;
 }
 
 @media (max-width: 520px) {
@@ -172,7 +179,8 @@
 }
 
 .balanceBox {
-  background: #f0faf6;
+  background: var(--balance-bg);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
@@ -188,11 +196,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid #cfd8d3;
+  border: 1px solid var(--border);
   border-radius: 10px;
   max-height: 200px;
   overflow-y: auto;
-  background: #fff;
+  background: var(--surface);
 }
 
 .searchHit {
@@ -203,7 +211,8 @@
   background: transparent;
   cursor: pointer;
   font: inherit;
-  border-bottom: 1px solid #eef2f0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 
 .searchHit:last-child {
@@ -211,7 +220,7 @@
 }
 
 .searchHit:hover {
-  background: #f0faf6;
+  background: var(--surface-2);
 }
 
 .twoColSection {

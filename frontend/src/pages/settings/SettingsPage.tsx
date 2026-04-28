@@ -109,10 +109,10 @@ export function SettingsPage() {
             value={accent}
             onChange={(e) => setAccent(e.target.value)}
           >
-            <option value="mint">Mint</option>
-            <option value="blue">Blue</option>
-            <option value="red">Red</option>
-            <option value="purple">Purple</option>
+            <option value="mint">{t("settings.accentMint")}</option>
+            <option value="blue">{t("settings.accentBlue")}</option>
+            <option value="red">{t("settings.accentRed")}</option>
+            <option value="purple">{t("settings.accentPurple")}</option>
           </select>
         </div>
 

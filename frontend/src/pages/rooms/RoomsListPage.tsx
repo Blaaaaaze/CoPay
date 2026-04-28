@@ -24,6 +24,7 @@ export function RoomsListPage() {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(true);
 
   const loadRooms = useCallback(async () => {
     if (!token) return;
@@ -81,12 +82,12 @@ export function RoomsListPage() {
               type="button"
               className={formStyles.roomsIntroBtn}
               aria-label={t("rooms.introHintAria")}
+              aria-expanded={introOpen}
+              aria-controls="rooms-intro-panel"
+              onClick={() => setIntroOpen((v) => !v)}
             >
               i
             </button>
-            <span className={formStyles.roomsIntroTooltip} role="tooltip">
-              {t("rooms.intro")}
-            </span>
           </span>
           <button
             type="button"
@@ -99,6 +100,15 @@ export function RoomsListPage() {
             {t("rooms.new")}
           </button>
         </div>
+      </div>
+      <div
+        id="rooms-intro-panel"
+        className={formStyles.roomsIntroInlinePanel}
+        role="region"
+        aria-label={t("rooms.introHintAria")}
+        hidden={!introOpen}
+      >
+        {t("rooms.intro")}
       </div>
 
       <ul className={formStyles.roomList}>

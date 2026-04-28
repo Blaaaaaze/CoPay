@@ -59,7 +59,7 @@
   margin-bottom: 1rem;
   padding: 1rem 1.1rem;
   border-radius: 16px;
-  background: var(--surface-2);
+  background: var(--viewer-bg);
   border: 1px solid var(--border);
 }
 
