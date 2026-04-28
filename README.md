@@ -25,7 +25,7 @@
 
 - **Разовый расчёт** (`/calculator`): ввод участников, позиций чека с указанием, кто в чём участвовал; выбор плательщика и валюты (RUB / USD / EUR); расчёт переводов и **публичная ссылка** на результат (`/r/:id`).
 - **Просмотр результата** по ссылке: список позиций, доли по людям, упрощённые переводы, блок «мои переводы» при вводе имени как у участника.
-- **Демо разбора чека**: загрузка файла → тестовый ответ сервера (заглушка под OCR).
+- **Демо разбора чека**: загрузка фото → при заданном `RECEIPT_OCR_BASE_URL` запрос к внешнему сервису OCR (`POST …/recognize`).
 
 ### С аккаунтом
 
@@ -173,11 +173,14 @@
 | POST | `/api/adhoc/split` | **Режим 1:** `payer`, `currency`, `products`: `[{ "name", "price", "participants": ["имя", ...] }]` — итог и доли из позиций. **Режим 2 (legacy):** `payer`, `amount`, `participants` — равные доли между всеми. Ответ: `id` (публичный), `transfers`, `shareLink`, `currency` и др. |
 | GET | `/api/adhoc/<public_id>` | Сохранённый расчёт. Опционально `?viewerName=Имя` — блок `viewer` с переводами от лица этого имени |
 
-### Чеки (демо)
+### Чеки (внешний OCR)
+
+На сервере задаётся **`RECEIPT_OCR_BASE_URL`** (без слэша в конце) — coPay проксирует файл на **`POST {RECEIPT_OCR_BASE_URL}/recognize`** (поле `file`). Без этого URL разбор чека недоступен (`503`).
 
 | Метод | Путь | Тело | Описание |
 |--------|------|------|----------|
-| POST | `/api/receipts/mock-parse` | `{ "fileName": "..." }` | Заглушка под OCR, тестовый `note` / `items` |
+| GET | `/api/receipts/health` | — | `ocrApiConfigured`, `parseBackend`: `ocr` \| `none` |
+| POST | `/api/receipts/parse` | `multipart/form-data`, поле `file` — фото чека | Ответ: `items` (`name`, `qty`, `price`), `total`, `note`, `source`: `ocr_api` |
 
 ### Статика медиа
 
@@ -190,7 +193,7 @@
 ## Аутентификация
 
 - После `register` / `login` клиент сохраняет **JWT** и передаёт его в заголовке `Authorization: Bearer ...` для защищённых эндпоинтов.
-- Эндпоинты без токена: `health`, `auth/*`, `i18n`, `adhoc/split`, `adhoc/<id>`, `receipts/mock-parse`, раздача `/media/`.
+- Эндпоинты без токена: `health`, `auth/*`, `i18n`, `adhoc/split`, `adhoc/<id>`, `receipts/health`, `receipts/parse`, раздача `/media/`.
 
 ---
 
