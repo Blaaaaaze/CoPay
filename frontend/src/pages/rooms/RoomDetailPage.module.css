@@ -4,23 +4,22 @@
   grid-template-columns: 1fr;
 }
 
+.roomMain {
+  min-width: 0;
+}
+
+.roomMain > :global(.page-title),
+.roomMain .creatorTitleBlock {
+  margin-top: 0;
+}
+
 @media (min-width: 1000px) {
   .roomGrid {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  }
-
-  .roomToolbar {
-    grid-column: 1 / -1;
-  }
-
-  .roomCenter {
-    grid-column: 1;
-    grid-row: 2;
+    align-items: start;
   }
 
   .roomAside {
-    grid-column: 2;
-    grid-row: 2;
     align-self: start;
     position: sticky;
     top: 5.5rem;
@@ -32,6 +31,8 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  margin-top: 0.35rem;
+  margin-bottom: 1rem;
 }
 
 .membersCard {
@@ -114,7 +115,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 22rem;
+  max-height: min(32rem, calc(100vh - 14rem));
   overflow-y: auto;
 }
 

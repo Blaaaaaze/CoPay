@@ -17,6 +17,7 @@ export function ProfilePage() {
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -26,6 +27,7 @@ export function ProfilePage() {
         const p = await api<AuthUser>("/api/me", { token });
         if (cancelled) return;
         setProfile(p);
+        setAvatarBroken(false);
         setDisplayName(p.displayName || "");
         setLastName(p.lastName || "");
         setEmail(p.email || "");
@@ -61,6 +63,7 @@ export function ProfilePage() {
         }),
       });
       setProfile(p);
+      setAvatarBroken(false);
       setSession(token, p);
       setOk(t("profile.saved"));
     } catch (ex) {
@@ -80,6 +83,7 @@ export function ProfilePage() {
       await uploadAvatar(token, f);
       const p = await api<AuthUser>("/api/me", { token });
       setProfile(p);
+      setAvatarBroken(false);
       setSession(token, p);
       setOk(t("profile.photoOk"));
     } catch (ex) {
@@ -97,7 +101,8 @@ export function ProfilePage() {
     setOk(t("profile.codeCopied"));
   }
 
-  const avatarSrc = normalizeMediaUrl(profile?.avatarUrl ?? undefined) ?? profile?.avatarUrl;
+  const avatarSrc =
+    normalizeMediaUrl(profile?.avatarUrl ?? undefined) ?? profile?.avatarUrl;
 
   return (
     <div className="container page-hero">
@@ -135,13 +140,14 @@ export function ProfilePage() {
         <div className="full-span">
           <h2 className={styles.cardTitle}>{t("profile.avatar")}</h2>
         </div>
-        {avatarSrc && (
+        {avatarSrc && !avatarBroken && (
           <div className="full-span">
             <img
               src={avatarSrc}
               alt=""
               width={120}
               height={120}
+              onError={() => setAvatarBroken(true)}
               style={{
                 borderRadius: 16,
                 objectFit: "cover",

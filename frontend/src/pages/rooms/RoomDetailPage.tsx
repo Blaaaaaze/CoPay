@@ -375,71 +375,73 @@ export function RoomDetailPage() {
       <p className={formStyles.subtle}>
         <Link to="/rooms">← {t("nav.rooms")}</Link>
       </p>
-      {isCreator && !roomNameEditing ? (
-        <h1 className={`page-title ${styles.roomTitleClickable}`} onClick={() => setRoomNameEditing(true)}>
-          {room.name}{" "}
-          <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
-        </h1>
-      ) : isCreator && roomNameEditing ? (
-        <form className={styles.creatorTitleBlock} onSubmit={saveRoomName}>
-          <div className={styles.creatorTitleRow}>
-            <input
-              className={styles.roomNameInput}
-              value={roomNameDraft}
-              onChange={(e) => {
-                setRoomNameDraft(e.target.value);
-                setNameErr("");
-              }}
-              aria-label={t("rooms.name")}
-              minLength={2}
-              required
-              autoFocus
-            />
-            <span className={styles.roomCurrencyBadge}>({cur})</span>
-          </div>
-          {nameErr && (
-            <p className="err" style={{ margin: "0.35rem 0 0" }}>
-              {nameErr}
-            </p>
-          )}
-          <div style={{ marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={nameSaving || roomNameDraft.trim().length < 2}
-            >
-              {nameSaving ? t("expense.saving") : t("common.save")}
-            </button>
-            <button
-              type="button"
-              className="btn-ghost"
-              disabled={nameSaving}
-              onClick={() => {
-                setRoomNameDraft(room.name);
-                setNameErr("");
-                setRoomNameEditing(false);
-              }}
-            >
-              {t("common.cancel")}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <h1 className="page-title">
-          {room.name}{" "}
-          <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
-        </h1>
-      )}
-      {err && <p className="err">{err}</p>}
-
       <div className={styles.roomGrid}>
-        <div className={styles.roomToolbar}>
-          <button type="button" className="btn-primary" onClick={openCreate}>
-            {t("room.newExpense")}
-          </button>
-        </div>
+        <div className={styles.roomMain}>
+          {isCreator && !roomNameEditing ? (
+            <h1 className={`page-title ${styles.roomTitleClickable}`} onClick={() => setRoomNameEditing(true)}>
+              {room.name}{" "}
+              <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
+            </h1>
+          ) : isCreator && roomNameEditing ? (
+            <form className={styles.creatorTitleBlock} onSubmit={saveRoomName}>
+              <div className={styles.creatorTitleRow}>
+                <input
+                  className={styles.roomNameInput}
+                  value={roomNameDraft}
+                  onChange={(e) => {
+                    setRoomNameDraft(e.target.value);
+                    setNameErr("");
+                  }}
+                  aria-label={t("rooms.name")}
+                  minLength={2}
+                  required
+                  autoFocus
+                />
+                <span className={styles.roomCurrencyBadge}>({cur})</span>
+              </div>
+              {nameErr && (
+                <p className="err" style={{ margin: "0.35rem 0 0" }}>
+                  {nameErr}
+                </p>
+              )}
+              <div style={{ marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={nameSaving || roomNameDraft.trim().length < 2}
+                >
+                  {nameSaving ? t("expense.saving") : t("common.save")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={nameSaving}
+                  onClick={() => {
+                    setRoomNameDraft(room.name);
+                    setNameErr("");
+                    setRoomNameEditing(false);
+                  }}
+                >
+                  {t("common.cancel")}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <h1 className="page-title">
+              {room.name}{" "}
+              <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
+            </h1>
+          )}
+          {err && <p className="err">{err}</p>}
 
-        <div className={styles.roomCenter}>{historySection}</div>
+          <div className={styles.roomToolbar}>
+            <button type="button" className="btn-primary" onClick={openCreate}>
+              {t("room.newExpense")}
+            </button>
+          </div>
+
+          {historySection}
+        </div>
 
         <aside className={styles.roomAside}>{asideSection}</aside>
       </div>

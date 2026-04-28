@@ -3,7 +3,7 @@ import { useI18n } from "../../shared/i18n/I18nContext";
 import { IconChevron } from "../atoms/IconChevron";
 import styles from "./HeroCarousel.module.css";
 
-export type CarouselSlide = { src: string; caption: string };
+export type CarouselSlide = { src: string; caption: string; fallbackSrc?: string };
 
 type Props = { slides: CarouselSlide[]; autoMs?: number };
 
@@ -51,7 +51,15 @@ export function HeroCarousel({ slides, autoMs = 0 }: Props) {
               className={`${styles.slide} ${idx === i ? styles.slideActive : ""}`}
               aria-hidden={idx !== i}
             >
-              <img src={s.src} alt="" />
+              <img
+                src={s.src}
+                alt=""
+                onError={(e) => {
+                  if (s.fallbackSrc && e.currentTarget.src !== new URL(s.fallbackSrc, window.location.origin).href) {
+                    e.currentTarget.src = s.fallbackSrc;
+                  }
+                }}
+              />
             </div>
           ))}
           <div className={styles.overlay} aria-hidden />

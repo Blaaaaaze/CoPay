@@ -4,10 +4,8 @@ import { useI18n } from "../../shared/i18n/I18nContext";
 import { HeroCarousel } from "../../ui/organisms/HeroCarousel";
 import styles from "./HomePage.module.css";
 
-const IMG_CALC =
-  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80";
-const IMG_ROOMS =
-  "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80";
+const IMG_CALC = "/home-photos/calc.jpg";
+const IMG_ROOMS = "/home-photos/rooms.jpg";
 
 export function HomePage() {
   const { t } = useI18n();
@@ -15,15 +13,15 @@ export function HomePage() {
   const receiptSlides = useMemo(
     () => [
       {
-        src: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&q=80",
+        src: "/home-photos/ocr-1.jpg",
         caption: t("home.slide1"),
       },
       {
-        src: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&q=80",
+        src: "/home-photos/ocr-2.jpg",
         caption: t("home.slide2"),
       },
       {
-        src: "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=1200&q=80",
+        src: "/home-photos/ocr-3.jpg",
         caption: t("home.slide3"),
       },
     ],

@@ -10,10 +10,11 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
 
 function UserAvatar() {
   const { user } = useAuth();
+  const [imgBroken, setImgBroken] = useState(false);
   if (!user) return null;
   const initial = (user.displayName || user.login || "?").slice(0, 1).toUpperCase();
   const src = normalizeMediaUrl(user.avatarUrl ?? undefined) ?? user.avatarUrl;
-  if (src) {
+  if (src && !imgBroken) {
     return (
       <img
         className={styles.avatar}
@@ -21,6 +22,7 @@ function UserAvatar() {
         alt=""
         width={40}
         height={40}
+        onError={() => setImgBroken(true)}
       />
     );
   }
