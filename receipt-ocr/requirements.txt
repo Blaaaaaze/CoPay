@@ -1,0 +1,15 @@
+# API
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+
+# Локальные модели OCR (EasyOCR — предобученные CNN + BiLSTM, без внешних API)
+easyocr>=1.7.1
+
+# Обработка изображений
+Pillow>=10.2.0
+numpy>=1.26.0
+opencv-python-headless>=4.9.0.80
+
+# PyTorch: ставьте отдельно под вашу CUDA/CPU, см. README в репозитории PyTorch
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
