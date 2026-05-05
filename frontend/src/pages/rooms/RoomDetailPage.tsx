@@ -32,7 +32,6 @@ export function RoomDetailPage() {
   const [nameErr, setNameErr] = useState("");
   const [disputeFor, setDisputeFor] = useState<RoomExpense | null>(null);
   const [receiveBusyId, setReceiveBusyId] = useState<string | null>(null);
-  const [fullSettleBusy, setFullSettleBusy] = useState(false);
 
   const nameById = useCallback(
     (id: string) => room?.members.find((m) => m.id === id)?.fullName || id.slice(0, 8) + "…",
@@ -143,25 +142,6 @@ export function RoomDetailPage() {
       setErr(ex instanceof Error ? ex.message : t("common.error"));
     } finally {
       setReceiveBusyId(null);
-    }
-  }
-
-  async function settleAllDebts() {
-    if (!token || !roomId || !user) return;
-    if (!window.confirm(t("room.settlementFullConfirm"))) return;
-    setErr("");
-    setFullSettleBusy(true);
-    try {
-      await api<{ ok: boolean; paymentsCreated: number }>(`/api/rooms/${roomId}/settlements/full`, {
-        method: "POST",
-        token,
-        body: JSON.stringify({ userId: user.id }),
-      });
-      await reloadAll();
-    } catch (ex) {
-      setErr(ex instanceof Error ? ex.message : t("common.error"));
-    } finally {
-      setFullSettleBusy(false);
     }
   }
 
@@ -285,17 +265,6 @@ export function RoomDetailPage() {
                 </li>
               ))}
             </ul>
-          )}
-          {user && balance.viewer.payTo.length > 0 && (
-            <button
-              type="button"
-              className="btn-ghost"
-              style={{ width: "100%", marginTop: "0.65rem" }}
-              disabled={fullSettleBusy}
-              onClick={() => void settleAllDebts()}
-            >
-              {fullSettleBusy ? t("expense.saving") : t("room.settlementFull")}
-            </button>
           )}
         </div>
       )}

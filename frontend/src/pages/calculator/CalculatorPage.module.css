@@ -112,7 +112,7 @@
 
 .participantsScrollArea {
   flex: 1 1 0;
-  min-height: 0;
+  min-height: 12rem;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -126,7 +126,7 @@
 }
 
 .wizardViewport {
-  --calc-wizard-h: min(calc(100dvh - 6.5rem), 56rem);
+  --calc-wizard-h: min(calc(100dvh - 4.5rem), 64rem);
   position: relative;
   height: var(--calc-wizard-h);
   max-height: var(--calc-wizard-h);
@@ -186,33 +186,36 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   gap: 0.35rem;
 }
 
 .productsFormBlock {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  max-height: min(20rem, 38vh);
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .productsListBlock {
-  flex: 1 1 0;
-  min-height: min(11rem, 32vh);
+  flex: 0 0 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  padding-top: 0.15rem;
+  overflow: visible;
+  padding-top: 0;
 }
 
 .productsListBlock > h3 {
   flex-shrink: 0;
   margin-top: 0;
+  position: static;
+  padding-bottom: 0;
 }
 
 .personsGridInForm {
@@ -262,7 +265,7 @@
 
 .personAddRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(50%, 1fr) auto auto;
   gap: 0.4rem;
   align-items: center;
   margin-bottom: 0.65rem;
@@ -285,6 +288,17 @@
   }
 }
 
+@media (max-width: 768px) {
+  .personAddRow {
+    grid-template-columns: minmax(50%, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .personAddRow .fw-base-input {
+    grid-column: 1 / -1;
+  }
+}
+
 .addProductRow {
   display: flex;
   flex-wrap: wrap;
@@ -292,6 +306,7 @@
   justify-content: flex-end;
   gap: 0.4rem;
   margin-top: 0.35rem;
+  margin-bottom: 0.45rem;
 }
 
 .mappingViewport {
@@ -327,22 +342,14 @@
   margin-bottom: 0.4rem;
 }
 
-.mappingMultiSelect {
-  width: 100%;
-  min-height: 7rem;
-  padding: 0.5rem 0.55rem;
+.mappingChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  border: 2px solid var(--border);
-  background: var(--page-bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.mappingMultiSelect:focus {
-  outline: none;
-  border-color: var(--accent-cyan);
+  padding: 0.6rem 0.7rem;
+  background: var(--surface);
 }
 
 .personList {
@@ -548,7 +555,7 @@
 }
 
 .priceCurrencyRow .fw-base-input:first-child {
-  flex: 2 1 0;
+  flex: 1 1 0;
   min-width: 0;
   margin-bottom: 0;
   height: var(--calc-price-control-height);
@@ -558,8 +565,8 @@
 }
 
 .currencySelect {
-  flex: 1 1 0;
-  min-width: 6.75rem;
+  flex: 0 0 6.25rem;
+  min-width: 6.25rem;
   margin-bottom: 0;
   box-sizing: border-box;
   height: var(--calc-price-control-height);
@@ -570,14 +577,22 @@
   align-self: stretch;
   appearance: none;
   background-color: var(--page-bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M2.5 4.5 6 8.5 9.5 4.5z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.55rem center;
-  background-size: 12px;
+  background-image: none;
 }
 
-html[data-theme="dark"] .currencySelect {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M2.5 4.5 6 8.5 9.5 4.5z'/%3E%3C/svg%3E");
+@media (max-width: 768px) {
+  .priceCurrencyRow {
+    flex-wrap: wrap;
+  }
+
+  .priceCurrencyRow .fw-base-input:first-child {
+    flex: 1 1 100%;
+  }
+
+  .currencySelect {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
 }
 
 .submitForm {

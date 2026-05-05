@@ -707,34 +707,34 @@ export function CalculatorPage() {
                       <label className={styles.mappingSelectLabel} htmlFor={`mapping-select-${i}`}>
                         {t("calc.mappingSelectLabel")}
                       </label>
-                      <select
-                        id={`mapping-select-${i}`}
-                        multiple
-                        className={styles.mappingMultiSelect}
-                        value={lineParticipants[i] ?? []}
-                        onChange={(e) => {
-                          const selected = Array.from(e.target.selectedOptions, (o) => o.value);
-                          setLineParticipants((prev) => {
-                            const out = [...prev];
-                            out[i] = selected;
-                            return out;
-                          });
-                        }}
-                        size={Math.min(Math.max(namedList.length, 2), 8)}
-                      >
-                        {namedList.map((nm) => (
-                          <option key={nm} value={nm}>
-                            {nm}
-                          </option>
-                        ))}
-                      </select>
+                      <div className={styles.mappingChecks}>
+                        {namedList.map((nm) => {
+                          const checked = (lineParticipants[i] ?? []).includes(nm);
+                          return (
+                            <label key={nm} className="fw-check">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  setLineParticipants((prev) => {
+                                    const out = [...prev];
+                                    const row = new Set(out[i] ?? []);
+                                    if (row.has(nm)) row.delete(nm);
+                                    else row.add(nm);
+                                    out[i] = namedList.filter((x) => row.has(x));
+                                    return out;
+                                  });
+                                }}
+                              />
+                              {nm}
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
                   ))}
                 </div>
                 <div className={styles.productsFooter}>
-                  <button type="button" className="btn-ghost" onClick={() => setReceiptOpen(true)}>
-                    {t("calc.attachReceipt")}
-                  </button>
                   <form className={styles.submitForm} onSubmit={onSubmit}>
                     {err && wizardStep === "mapping" && (
                       <p className="err" style={{ margin: 0 }}>

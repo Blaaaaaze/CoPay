@@ -165,6 +165,10 @@ textarea {
   font: inherit;
 }
 
+button {
+  text-align: center;
+}
+
 input,
 textarea,
 select {
@@ -185,6 +189,10 @@ button.btn-primary {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 button.btn-primary:hover {
@@ -205,7 +213,9 @@ a.btn-ghost {
   border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 600;
   font-size: inherit;
   font-family: inherit;

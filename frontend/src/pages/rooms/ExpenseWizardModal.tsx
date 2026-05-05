@@ -23,8 +23,8 @@ type Props = {
   onSaved: () => void;
 };
 
-function emptyLine(memberIds: string[]): DraftLine {
-  return { name: "", amount: "", participantIds: [...memberIds] };
+function emptyLine(): DraftLine {
+  return { name: "", amount: "", participantIds: [] };
 }
 
 export function ExpenseWizardModal({
@@ -84,14 +84,14 @@ export function ExpenseWizardModal({
       } else {
         setSimpleMode(true);
         setSimpleAmount(String(editing.amount));
-        setLines([emptyLine(memberIds)]);
+        setLines([emptyLine()]);
       }
     } else {
       setTitle("");
       setPayerId(defaultPayerId);
       setSimpleMode(false);
       setSimpleAmount("");
-      setLines([emptyLine(memberIds)]);
+      setLines([emptyLine()]);
     }
   }, [open, editing, defaultPayerId, memberIds.join(",")]);
 
@@ -230,13 +230,13 @@ export function ExpenseWizardModal({
                 const newRows = items.map((it) => ({
                   name: it.name,
                   amount: String(Math.round(it.qty * it.price * 100) / 100),
-                  participantIds: [...memberIds],
+                  participantIds: [],
                 }));
                 if (simpleMode) {
                   setLines(
                     newRows.length
                       ? mergeDuplicateRoomLines(newRows)
-                      : [emptyLine(memberIds)]
+                      : [emptyLine()]
                   );
                 } else {
                   setLines((prev) => mergeDuplicateRoomLines([...prev, ...newRows]));
@@ -323,7 +323,7 @@ export function ExpenseWizardModal({
               <button
                 type="button"
                 className="fw-btn fw-btn-add"
-                onClick={() => setLines((prev) => [...prev, emptyLine(memberIds)])}
+                onClick={() => setLines((prev) => [...prev, emptyLine()])}
               >
                 {t("expense.addLine")}
               </button>
