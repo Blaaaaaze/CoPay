@@ -4,7 +4,11 @@ import { api } from "../../shared/api/client";
 import { useAuth, type AuthUser } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { applyThemeToDocument } from "../../app/PreferenceSync";
+import { Button } from "../../ui/atoms/Button";
+import { Select } from "../../ui/atoms/Select";
+import { PageHero } from "../../ui/templates/PageHero";
 import styles from "../FormPage.module.css";
+import pageStyles from "./SettingsPage.module.css";
 
 const THEME_KEY = "copay_theme";
 const ACCENT_KEY = "copay_accent";
@@ -60,52 +64,52 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <p className={styles.subtle}>
         <Link to="/profile">← {t("nav.profile")}</Link>
       </p>
       <h1 className="page-title">{t("settings.title")}</h1>
 
-      <form className="fw-panel form-grid-2" onSubmit={save} style={{ maxWidth: "40rem" }}>
+      <form className={`fw-panel form-grid-2 ${pageStyles.form40}`} onSubmit={save}>
         {err && (
-          <p className="err full-span" style={{ margin: 0 }}>
+          <p className={`err full-span ${pageStyles.inlineMsgNoMargin}`}>
             {err}
           </p>
         )}
         {ok && (
-          <p className="ok full-span" style={{ margin: 0 }}>
+          <p className={`ok full-span ${pageStyles.inlineMsgNoMargin}`}>
             {ok}
           </p>
         )}
 
         <div className="fw-input-row full-span">
           <span>{t("settings.lang")}</span>
-          <select
-            className="fw-base-input"
+          <Select
+            variant="fw"
             value={prefLang}
             onChange={(e) => setPrefLang(e.target.value)}
           >
             <option value="ru">Русский</option>
             <option value="en">English</option>
-          </select>
+          </Select>
         </div>
 
         <div className="fw-input-row">
           <span>{t("settings.theme")}</span>
-          <select
-            className="fw-base-input"
+          <Select
+            variant="fw"
             value={theme}
             onChange={(e) => setTheme(e.target.value as "light" | "dark")}
           >
             <option value="light">{t("settings.themeLight")}</option>
             <option value="dark">{t("settings.themeDark")}</option>
-          </select>
+          </Select>
         </div>
 
         <div className="fw-input-row">
           <span>{t("settings.accent")}</span>
-          <select
-            className="fw-base-input"
+          <Select
+            variant="fw"
             value={accent}
             onChange={(e) => setAccent(e.target.value)}
           >
@@ -113,19 +117,19 @@ export function SettingsPage() {
             <option value="blue">{t("settings.accentBlue")}</option>
             <option value="red">{t("settings.accentRed")}</option>
             <option value="purple">{t("settings.accentPurple")}</option>
-          </select>
+          </Select>
         </div>
 
-        <p className={`${styles.subtle} full-span`} style={{ fontSize: "0.85rem", marginTop: 0 }}>
+        <p className={`${styles.subtle} full-span ${pageStyles.previewNote}`}>
           {t("settings.previewNote")}
         </p>
 
         <div className="full-span">
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {t("common.save")}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </PageHero>
   );
 }

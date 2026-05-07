@@ -1,0 +1,58 @@
+.amountLine {
+  margin-top: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.metaLine {
+  margin: 0.35rem 0;
+}
+
+.authorLine {
+  margin: 0.35rem 0;
+  font-size: 0.9rem;
+}
+
+.dateLine {
+  margin: 0.35rem 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.itemsList {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.itemsHint {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.disputesList {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.disputeRow {
+  margin-bottom: 0.5rem;
+}
+
+.disputeMeta {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.actionsRow {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+

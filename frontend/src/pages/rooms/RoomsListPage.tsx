@@ -5,7 +5,13 @@ import { useAuth } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { currencySymbol } from "../../shared/lib/currency";
 import { Modal } from "../../ui/molecules/Modal";
+import { Button } from "../../ui/atoms/Button";
+import { Select } from "../../ui/atoms/Select";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { LinkButton } from "../../ui/atoms/LinkButton";
+import { PageHero } from "../../ui/templates/PageHero";
 import formStyles from "../FormPage.module.css";
+import styles from "./RoomsListPage.module.css";
 
 type Room = {
   id: string;
@@ -60,7 +66,7 @@ export function RoomsListPage() {
 
   if (!token) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <h1 className="page-title">{t("rooms.title")}</h1>
         <p className="section-text">{t("rooms.guestHint")}</p>
         <p>
@@ -68,18 +74,19 @@ export function RoomsListPage() {
           {" · "}
           <Link to="/register">{t("nav.register")}</Link>
         </p>
-      </div>
+      </PageHero>
     );
   }
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <div className={formStyles.roomsPageTop}>
         <h1 className="page-title">{t("rooms.title")}</h1>
         <div className={formStyles.roomsTopActions}>
           <span className={formStyles.roomsIntroHintWrap}>
-            <button
+            <Button
               type="button"
+              variant="bare"
               className={formStyles.roomsIntroBtn}
               aria-label={t("rooms.introHintAria")}
               aria-expanded={introOpen}
@@ -87,18 +94,18 @@ export function RoomsListPage() {
               onClick={() => setIntroOpen((v) => !v)}
             >
               i
-            </button>
+            </Button>
           </span>
-          <button
+          <Button
             type="button"
-            className="btn-primary"
+            variant="primary"
             onClick={() => {
               setErr("");
               setCreateOpen(true);
             }}
           >
             {t("rooms.new")}
-          </button>
+          </Button>
         </div>
       </div>
       <div
@@ -117,9 +124,9 @@ export function RoomsListPage() {
           <li key={r.id} className={formStyles.roomItem}>
             <div className={formStyles.roomHead}>
               <span className={formStyles.roomName}>{r.name}</span>
-              <Link to={`/rooms/${r.id}`} className="btn-ghost">
+              <LinkButton to={`/rooms/${r.id}`} variant="ghost">
                 {t("common.open")}
-              </Link>
+              </LinkButton>
             </div>
             <p className={formStyles.subtle}>
               {currencySymbol(r.currency || "RUB")} · {t("room.membersCount")}: {r.memberIds.length}
@@ -132,14 +139,14 @@ export function RoomsListPage() {
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t("rooms.new")}>
         <form className="form-grid-2" onSubmit={createRoom}>
           {err && (
-            <p className="err full-span" style={{ margin: 0 }}>
+            <p className={`err full-span ${styles.inlineMsgNoMargin}`}>
               {err}
             </p>
           )}
           <div className="fw-input-row full-span">
             <span>{t("rooms.name")}</span>
-            <input
-              className="fw-base-input"
+            <TextInput
+              variant="fw"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder={t("rooms.namePh")}
@@ -149,23 +156,23 @@ export function RoomsListPage() {
           </div>
           <div className="fw-input-row full-span">
             <span>{t("calc.currency")}</span>
-            <select
-              className="fw-base-input"
+            <Select
+              variant="fw"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
               <option value="RUB">{t("currency.rub")}</option>
               <option value="USD">{t("currency.usd")}</option>
               <option value="EUR">{t("currency.eur")}</option>
-            </select>
+            </Select>
           </div>
           <div className="full-span">
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <Button type="submit" variant="primary" disabled={loading}>
               {t("rooms.create")}
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>
-    </div>
+    </PageHero>
   );
 }

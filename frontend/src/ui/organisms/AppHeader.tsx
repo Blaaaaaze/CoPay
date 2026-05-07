@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { normalizeMediaUrl } from "../../shared/lib/mediaUrl";
+import { Button } from "../atoms/Button";
 import styles from "./AppHeader.module.css";
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -70,8 +71,9 @@ export function AppHeader() {
         <div className={styles.user}>
           {user ? (
             <div className={styles.menuWrap} ref={wrapRef}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 className={styles.avatarBtn}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
@@ -81,7 +83,7 @@ export function AppHeader() {
                 }}
               >
                 <UserAvatar />
-              </button>
+              </Button>
               {menuOpen && (
                 <div className={styles.dropdown} role="menu">
                   <Link
@@ -100,8 +102,9 @@ export function AppHeader() {
                   >
                     {t("nav.settings")}
                   </Link>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     className={styles.dropdownItem}
                     role="menuitem"
                     onClick={() => {
@@ -110,7 +113,7 @@ export function AppHeader() {
                     }}
                   >
                     {t("nav.logout")}
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

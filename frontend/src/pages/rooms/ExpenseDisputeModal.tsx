@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/api/client";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { Modal } from "../../ui/molecules/Modal";
+import { Button } from "../../ui/atoms/Button";
+import { TextArea } from "../../ui/atoms/TextArea";
 import type { RoomExpense } from "./roomTypes";
+import styles from "./ExpenseDisputeModal.module.css";
 
 type Props = {
   open: boolean;
@@ -60,24 +63,24 @@ export function ExpenseDisputeModal({
     <Modal open={open} onClose={onClose} title={t("room.disputeTitle")}>
       <form onSubmit={submit}>
         {err && <p className="err">{err}</p>}
-        <p className="section-text" style={{ marginTop: 0, fontSize: "0.92rem" }}>
+        <p className={`section-text ${styles.hint}`}>
           {t("room.disputeHint")}
         </p>
-        <textarea
-          className="fw-base-input"
+        <TextArea
+          variant="fw"
           rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("room.disputePlaceholder")}
-          style={{ minHeight: "5rem", resize: "vertical" }}
+          className={styles.message}
         />
-        <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button type="submit" className="btn-primary" disabled={loading}>
+        <div className={styles.actionsRow}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {loading ? t("expense.saving") : t("room.disputeSend")}
-          </button>
-          <button type="button" className="btn-ghost" onClick={onClose}>
+          </Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
             {t("common.cancel")}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

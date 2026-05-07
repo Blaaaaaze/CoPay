@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/api/client";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { Modal } from "../../ui/molecules/Modal";
+import { SelectedChips } from "../../ui/molecules/SelectedChips";
+import { UserSearchSelectCard } from "../../ui/molecules/UserSearchSelectCard";
+import { TextInput } from "../../ui/atoms/TextInput";
 import type { SearchHit } from "./roomTypes";
 import formStyles from "../FormPage.module.css";
+import styles from "./InviteMembersModal.module.css";
 
 type Selected = { id: string; label: string; inviteCode?: string };
 
@@ -101,65 +105,30 @@ export function InviteMembersModal({
     <Modal open={open} onClose={onClose} title={t("room.invitePeople")}>
       {err && <p className="err">{err}</p>}
       {okMsg && <p className="ok">{okMsg}</p>}
-      {Object.keys(selected).length > 0 && (
-        <div
-          className="card"
-          style={{
-            padding: "0.65rem 0.75rem",
-            marginBottom: "0.75rem",
-            background: "var(--surface)",
-          }}
-        >
-          <div style={{ fontWeight: 700, marginBottom: "0.35rem" }}>{t("room.selected")}:</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-            {Object.values(selected).map((x) => (
-              <button
-                key={x.id}
-                type="button"
-                className="btn-ghost"
-                onClick={() =>
-                  setSelected((prev) => {
-                    const next = { ...prev };
-                    delete next[x.id];
-                    return next;
-                  })
-                }
-                style={{
-                  padding: "0.2rem 0.45rem",
-                  borderRadius: 999,
-                  fontSize: "0.85rem",
-                  lineHeight: 1.1,
-                }}
-                title={t("common.delete")}
-              >
-                {x.label} ×
-              </button>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.6rem" }}>
-            <button type="button" className="btn-primary" disabled={loading} onClick={() => void addSelectedUsers()}>
-              {t("room.addSelected")}
-            </button>
-            <button
-              type="button"
-              className="btn-ghost"
-              disabled={loading}
-              onClick={() => setSelected({})}
-              style={{ opacity: 0.9 }}
-            >
-              {t("common.cancel")}
-            </button>
-          </div>
-        </div>
-      )}
-      <h3 className={formStyles.cardTitle} style={{ marginTop: 0, fontSize: "1rem" }}>
+      <SelectedChips
+        title={t("room.selected")}
+        chips={Object.values(selected).map((x) => ({ id: x.id, label: x.label }))}
+        loading={loading}
+        primaryLabel={t("room.addSelected")}
+        secondaryLabel={t("common.cancel")}
+        onPrimary={() => void addSelectedUsers()}
+        onSecondary={() => setSelected({})}
+        onRemoveChip={(id) =>
+          setSelected((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+          })
+        }
+      />
+      <h3 className={`${formStyles.cardTitle} ${styles.heading}`}>
         {t("room.inviteByName")}
       </h3>
       <p className={formStyles.subtle}>{t("room.searchHint")}</p>
       <div className="fw-input-row">
         <span>{t("room.searchLabel")}</span>
-        <input
-          className="fw-base-input"
+        <TextInput
+          variant="fw"
           value={searchQ}
           onChange={(e) => setSearchQ(e.target.value)}
           placeholder={t("room.searchHint")}
@@ -167,54 +136,15 @@ export function InviteMembersModal({
         />
       </div>
       {hits.length > 0 && (
-        <ul
-          className={formStyles.searchHits}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(25%, 12rem), 1fr))",
-            gap: "0.35rem",
-            padding: "0.35rem",
-          }}
-        >
+        <ul className={`${formStyles.searchHits} ${styles.hitsGrid}`}>
           {hits.map((h) => (
-            <li key={h.id} style={{ listStyle: "none" }}>
-              <label
-                className={formStyles.searchHit}
-                style={{
-                  display: "flex",
-                  gap: "0.45rem",
-                  alignItems: "flex-start",
-                  padding: "0.45rem 0.55rem",
-                  fontSize: "0.92rem",
-                  border: "1px solid var(--border)",
-                  borderRadius: 10,
-                  background: "var(--surface)",
-                  height: "100%",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!selected[h.id]}
-                  disabled={loading || memberIds.includes(h.id)}
-                  onChange={() => toggleHit(h)}
-                  style={{ marginTop: 2 }}
-                />
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, overflowWrap: "anywhere" }}>
-                    {h.fullName}
-                  </div>
-                  {h.inviteCode && (
-                    <div style={{ color: "var(--muted)", fontSize: "0.82rem", marginTop: 2 }}>
-                      {h.inviteCode}
-                    </div>
-                  )}
-                  {memberIds.includes(h.id) && (
-                    <div style={{ color: "var(--muted)", fontSize: "0.82rem", marginTop: 2 }}>
-                      {t("room.alreadyMember")}
-                    </div>
-                  )}
-                </span>
-              </label>
+            <li key={h.id} className={styles.hitItem}>
+              <UserSearchSelectCard
+                checked={!!selected[h.id]}
+                disabled={loading || memberIds.includes(h.id)}
+                name={h.fullName}
+                onToggle={() => toggleHit(h)}
+              />
             </li>
           ))}
         </ul>

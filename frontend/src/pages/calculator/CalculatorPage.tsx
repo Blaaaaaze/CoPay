@@ -7,6 +7,11 @@ import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { formatMoney } from "../../shared/lib/currency";
 import { mergeProductLinesWithParticipants } from "../../shared/lib/mergeDuplicateLines";
 import { showToast } from "../../shared/ui/toast";
+import { Button } from "../../ui/atoms/Button";
+import { Checkbox } from "../../ui/atoms/Checkbox";
+import { Select } from "../../ui/atoms/Select";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { CalcLayout } from "../../ui/templates/CalcLayout";
 import { ReceiptUploadModal } from "./ReceiptUploadModal";
 import formStyles from "../FormPage.module.css";
 import styles from "./CalculatorPage.module.css";
@@ -321,7 +326,7 @@ export function CalculatorPage() {
         <h1 className="page-title">{t("calc.title")}</h1>
       </div>
 
-      <div className="calc-layout">
+      <CalcLayout>
         <div className={`${styles.wizardShell} calc-span-2`}>
           <div className={styles.wizardViewport}>
             <div
@@ -334,8 +339,9 @@ export function CalculatorPage() {
                   <h2>
                     {t("calc.participants")}
                     <span className={`${styles.introHintWrap} ${styles.headingHintWrap}`}>
-                      <button
+                      <Button
                         type="button"
+                        variant="bare"
                         className={styles.introHintBtn}
                         aria-label={t("calc.introHintAria")}
                         aria-expanded={introOpen}
@@ -343,7 +349,7 @@ export function CalculatorPage() {
                         onClick={() => setIntroOpen((v) => !v)}
                       >
                         i
-                      </button>
+                      </Button>
                     </span>
                   </h2>
                 </div>
@@ -357,14 +363,13 @@ export function CalculatorPage() {
                   {t("calc.intro")}
                 </div>
                 <p
-                  className={`${formStyles.subtle} ${styles.participantsStaticHint}`}
-                  style={{ marginTop: 0, fontSize: "0.88rem" }}
+                  className={`${formStyles.subtle} ${styles.participantsStaticHint} ${styles.implicitPayerHint}`}
                 >
                   {t("calc.implicitPayerHint")}
                 </p>
                 <div className={styles.personAddRow}>
-                  <input
-                    className="fw-base-input"
+                  <TextInput
+                    variant="fw"
                     value={draftName}
                     onChange={(e) => {
                       setDraftName(e.target.value);
@@ -373,17 +378,16 @@ export function CalculatorPage() {
                     placeholder={t("calc.participantPlaceholder")}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addParticipant())}
                   />
-                  <button type="button" className="btn-primary" onClick={addParticipant}>
+                  <Button type="button" variant="primary" onClick={addParticipant}>
                     {t("calc.addParticipant")}
-                  </button>
-                  <button type="button" className="btn-primary" onClick={goToPurchases}>
+                  </Button>
+                  <Button type="button" variant="primary" onClick={goToPurchases}>
                     {t("calc.next")}
-                  </button>
+                  </Button>
                 </div>
                 {duplicateNameErr && (
                   <p
-                    className={`err ${styles.inputHintErr} ${styles.participantsStaticHint}`}
-                    style={{ margin: "0 0 0.65rem" }}
+                    className={`err ${styles.inputHintErr} ${styles.participantsStaticHint} ${styles.duplicateNameErr}`}
                   >
                     {duplicateNameErr}
                   </p>
@@ -395,19 +399,21 @@ export function CalculatorPage() {
                         key={p.id}
                         className={`${styles.personRow} ${editingId === p.id ? styles.personRowEditing : ""}`}
                       >
-                        <button
+                        <Button
                           type="button"
-                          className={`fw-btn fw-btn-del item-btn ${styles.personDelBtn}`}
+                          variant="fwDel"
+                          className={`item-btn ${styles.personDelBtn}`}
                           onClick={() => removeParticipant(p.id)}
                           aria-label={t("common.delete")}
                         >
                           ×
-                        </button>
+                        </Button>
                         {editingId === p.id ? (
                           <>
-                            <input
+                            <TextInput
+                              variant="fw"
                               ref={personEditInputRef}
-                              className={`fw-base-input ${styles.personEditInput}`}
+                              className={styles.personEditInput}
                               value={editDraft}
                               onChange={(e) => {
                                 setEditDraft(e.target.value);
@@ -418,25 +424,21 @@ export function CalculatorPage() {
                                 if (e.key === "Escape") setEditingId(null);
                               }}
                             />
-                            <button type="button" className="btn-ghost" onClick={saveEdit}>
+                            <Button type="button" variant="ghost" onClick={saveEdit}>
                               {t("common.save")}
-                            </button>
+                            </Button>
                           </>
                         ) : (
-                          <button
-                            type="button"
-                            className={styles.personNameBtn}
-                            onClick={() => startEdit(p)}
-                          >
+                          <Button type="button" variant="ghost" className={styles.personNameBtn} onClick={() => startEdit(p)}>
                             {p.name || "—"}
-                          </button>
+                          </Button>
                         )}
                       </li>
                     ))}
                   </ul>
                 </div>
                 {err && wizardStep === "participants" && (
-                  <p className={`err ${styles.participantsStaticHint}`} style={{ margin: "0.75rem 0 0" }}>
+                  <p className={`err ${styles.participantsStaticHint} ${styles.participantsErrAfterList}`}>
                     {err}
                   </p>
                 )}
@@ -449,36 +451,26 @@ export function CalculatorPage() {
               {...(wizardStep !== "purchases" ? { inert: true as const } : {})}
             >
               <div className={`fw-panel ${styles.formPanel}`}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "0.75rem",
-                    marginBottom: "0.5rem",
-                    flexShrink: 0,
-                  }}
-                >
-                  <h2 style={{ margin: 0 }}>{t("calc.purchasesStepTitle")}</h2>
-                  <button
+                <div className={styles.sectionHeadingRowSpaced}>
+                  <h2>{t("calc.purchasesStepTitle")}</h2>
+                  <Button
                     type="button"
-                    className="btn-ghost"
+                    variant="ghost"
                     onClick={() => {
                       setErr("");
                       setWizardStep("participants");
                     }}
                   >
                     {t("calc.back")}
-                  </button>
+                  </Button>
                 </div>
                 <div className={styles.productsBody}>
                   <div className={styles.productsFormBlock}>
                     <form onSubmit={addProductLine}>
                       <div className="fw-input-row">
                         <span>{t("calc.itemName")}</span>
-                        <input
-                          className="fw-base-input"
+                        <TextInput
+                          variant="fw"
                           value={prodName}
                           onChange={(e) => setProdName(e.target.value)}
                           placeholder={t("calc.productPlaceholder")}
@@ -487,28 +479,29 @@ export function CalculatorPage() {
                       <div className="fw-input-row">
                         <span>{t("calc.itemPrice")}</span>
                         <div className={styles.priceCurrencyRow}>
-                          <input
-                            className="fw-base-input"
+                          <TextInput
+                            variant="fw"
                             value={prodPrice}
                             onChange={(e) => setProdPrice(e.target.value)}
                             inputMode="decimal"
                             placeholder="0"
                           />
-                          <select
-                            className={`fw-base-input ${styles.currencySelect}`}
+                          <Select
+                            variant="fw"
+                            className={styles.currencySelect}
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
                           >
                             <option value="RUB">{t("currency.rub")}</option>
                             <option value="USD">{t("currency.usd")}</option>
                             <option value="EUR">{t("currency.eur")}</option>
-                          </select>
+                          </Select>
                         </div>
                       </div>
                       <div className={styles.addProductRow}>
-                        <button className="btn-primary" type="submit">
+                        <Button variant="primary" type="submit">
                           {t("common.add")}
-                        </button>
+                        </Button>
                         <ReceiptParseButton
                           label={t("calc.receiptFromFile")}
                           onError={(m) => setErr(m)}
@@ -540,9 +533,9 @@ export function CalculatorPage() {
                             setEditingProductIdx(null);
                           }}
                         />
-                        <button type="button" className="btn-primary" onClick={goToMapping}>
+                        <Button type="button" variant="primary" onClick={goToMapping}>
                           {t("calc.next")}
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   </div>
@@ -558,9 +551,10 @@ export function CalculatorPage() {
                             <div className={styles.productLineMain}>
                               {editingProductIdx === index ? (
                                 <div className={styles.productLineEditRow}>
-                                  <input
+                                  <TextInput
+                                    variant="fw"
                                     ref={productEditNameRef}
-                                    className={`fw-base-input ${styles.productLineEditName}`}
+                                    className={styles.productLineEditName}
                                     value={editLineDraft.name}
                                     onChange={(e) =>
                                       setEditLineDraft((d) => ({ ...d, name: e.target.value }))
@@ -570,16 +564,18 @@ export function CalculatorPage() {
                                       if (e.key === "Escape") cancelEditProduct();
                                     }}
                                   />
-                                  <input
-                                    className={`fw-base-input ${styles.productLineEditPrice}`}
+                                  <TextInput
+                                    variant="fw"
+                                    className={styles.productLineEditPrice}
                                     value={editLineDraft.price}
                                     onChange={(e) =>
                                       setEditLineDraft((d) => ({ ...d, price: e.target.value }))
                                     }
                                     inputMode="decimal"
                                   />
-                                  <select
-                                    className={`fw-base-input ${styles.currencySelect} ${styles.productLineEditCurrency}`}
+                                  <Select
+                                    variant="fw"
+                                    className={`${styles.currencySelect} ${styles.productLineEditCurrency}`}
                                     value={editLineDraft.currency}
                                     onChange={(e) =>
                                       setEditLineDraft((d) => ({ ...d, currency: e.target.value }))
@@ -588,13 +584,13 @@ export function CalculatorPage() {
                                     <option value="RUB">{t("currency.rub")}</option>
                                     <option value="USD">{t("currency.usd")}</option>
                                     <option value="EUR">{t("currency.eur")}</option>
-                                  </select>
-                                  <button type="button" className="btn-ghost" onClick={saveEditProduct}>
+                                  </Select>
+                                  <Button type="button" variant="ghost" onClick={saveEditProduct}>
                                     {t("common.save")}
-                                  </button>
-                                  <button type="button" className="btn-ghost" onClick={cancelEditProduct}>
+                                  </Button>
+                                  <Button type="button" variant="ghost" onClick={cancelEditProduct}>
                                     {t("common.cancel")}
-                                  </button>
+                                  </Button>
                                 </div>
                               ) : (
                                 <>
@@ -645,14 +641,15 @@ export function CalculatorPage() {
                               )}
                             </div>
                             <div className="fw-product-actions">
-                              <button
+                      <Button
                                 type="button"
-                                className="fw-btn fw-btn-del item-btn"
+                        variant="fwDel"
+                        className="item-btn"
                                 onClick={() => removeProductLine(index)}
                                 aria-label={t("common.delete")}
                               >
                                 ×
-                              </button>
+                      </Button>
                             </div>
                           </li>
                         ))}
@@ -661,7 +658,7 @@ export function CalculatorPage() {
                   </div>
                 </div>
                 {err && wizardStep === "purchases" && (
-                  <p className="err" style={{ margin: "0.5rem 0 0" }}>
+                  <p className={`err ${styles.purchasesErrAfterList}`}>
                     {err}
                   </p>
                 )}
@@ -674,30 +671,20 @@ export function CalculatorPage() {
               {...(wizardStep !== "mapping" ? { inert: true as const } : {})}
             >
               <div className={`fw-panel ${styles.formPanel}`}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "0.75rem",
-                    marginBottom: "0.35rem",
-                    flexShrink: 0,
-                  }}
-                >
-                  <h2 style={{ margin: 0 }}>{t("calc.mappingStepTitle")}</h2>
-                  <button
+                <div className={styles.sectionHeadingRowSpaced}>
+                  <h2>{t("calc.mappingStepTitle")}</h2>
+                  <Button
                     type="button"
-                    className="btn-ghost"
+                    variant="ghost"
                     onClick={() => {
                       setErr("");
                       setWizardStep("purchases");
                     }}
                   >
                     {t("calc.back")}
-                  </button>
+                  </Button>
                 </div>
-                <p className={formStyles.subtle} style={{ marginTop: 0, fontSize: "0.88rem" }}>
+                <p className={`${formStyles.subtle} ${styles.mappingHint}`}>
                   {t("calc.mappingHint")}
                 </p>
                 <div className={styles.mappingViewport}>
@@ -714,8 +701,7 @@ export function CalculatorPage() {
                           const checked = (lineParticipants[i] ?? []).includes(nm);
                           return (
                             <label key={nm} className="fw-check">
-                              <input
-                                type="checkbox"
+                              <Checkbox
                                 checked={checked}
                                 onChange={() => {
                                   setLineParticipants((prev) => {
@@ -739,13 +725,13 @@ export function CalculatorPage() {
                 <div className={styles.productsFooter}>
                   <form className={styles.submitForm} onSubmit={onSubmit}>
                     {err && wizardStep === "mapping" && (
-                      <p className="err" style={{ margin: 0 }}>
+                      <p className={`err ${styles.mappingErrMsg}`}>
                         {err}
                       </p>
                     )}
-                    <button type="submit" className="btn-primary" disabled={loading}>
+                  <Button type="submit" variant="primary" disabled={loading}>
                       {loading ? t("expense.saving") : t("calc.calculate")}
-                    </button>
+                  </Button>
                   </form>
                 </div>
               </div>
@@ -757,7 +743,7 @@ export function CalculatorPage() {
           <div className="calc-span-2" ref={resultWrapRef}>
             <div className={`${styles.resultCapture} calc-result-capture`}>
               <h2>{t("calc.resultTitle")}</h2>
-              <p className="section-text" style={{ marginTop: 0 }}>
+              <p className={`section-text ${styles.resultIntro}`}>
                 {t("adhoc.paidSummary", {
                   payer: resultDetail.payer,
                   amount: formatMoney(resultDetail.amount, resultCur),
@@ -768,7 +754,7 @@ export function CalculatorPage() {
                 {perPerson.map((p) => (
                   <div key={p.name} className={styles.resultCard}>
                     <h3>{p.name}</h3>
-                    <p style={{ margin: "0 0 0.35rem", fontWeight: 600 }}>
+                    <p className={styles.resultLineTotal}>
                       {t("adhoc.share")}: {formatMoney(p.total, resultCur)}
                     </p>
                     <ul>
@@ -788,7 +774,7 @@ export function CalculatorPage() {
                   </div>
                 ))}
               </div>
-              <h3 style={{ fontSize: "1.05rem", margin: "0 0 0.5rem" }}>{t("calc.transfersTitle")}</h3>
+              <h3 className={styles.transfersTitle}>{t("calc.transfersTitle")}</h3>
               {resultDetail.transfers.length === 0 ? (
                 <p className={formStyles.subtle}>{t("adhoc.noTransfers")}</p>
               ) : (
@@ -802,15 +788,15 @@ export function CalculatorPage() {
                 </ul>
               )}
             </div>
-            <div style={{ marginTop: "1rem" }}>
-              <h3 className={formStyles.cardTitle} style={{ fontSize: "1rem" }}>
+            <div className={styles.shareBlock}>
+              <h3 className={`${formStyles.cardTitle} ${styles.shareLinkTitle}`}>
                 {t("calc.shareLinkLabel")}
               </h3>
-              <input readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
-                <button
+              <TextInput readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
+              <div className={styles.shareActionsRow}>
+                <Button
                   type="button"
-                  className="btn-ghost"
+                  variant="ghost"
                   onClick={async () => {
                     if (!shareUrl) return;
                     setErr("");
@@ -820,15 +806,15 @@ export function CalculatorPage() {
                   }}
                 >
                   {t("common.copy")}
-                </button>
-                <button type="button" className="fw-btn fw-btn-download" onClick={downloadPng}>
+                </Button>
+                <Button type="button" variant="fwDownload" onClick={downloadPng}>
                   {t("calc.downloadPng")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </CalcLayout>
 
       <ReceiptUploadModal open={receiptOpen} onClose={() => setReceiptOpen(false)} currency={currency} />
     </div>

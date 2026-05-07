@@ -1,0 +1,37 @@
+.panel48 {
+  max-width: 48rem;
+}
+
+.panel48WithBottomGap {
+  max-width: 48rem;
+  margin-bottom: 1.5rem;
+}
+
+.avatarPanel {
+  max-width: 48rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+.inviteText {
+  margin-bottom: 0.75rem;
+}
+
+.inviteCode {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-family: ui-monospace, monospace;
+}
+
+.avatarImg {
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.inlineMsgNoMargin {
+  margin: 0;
+}
+

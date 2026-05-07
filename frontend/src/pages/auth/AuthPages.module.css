@@ -1,0 +1,12 @@
+.loginForm {
+  max-width: 28rem;
+}
+
+.registerForm {
+  max-width: 40rem;
+}
+
+.inlineMsgNoMargin {
+  margin: 0;
+}
+

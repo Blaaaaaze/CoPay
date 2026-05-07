@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../shared/api/client";
 import { useAuth, type AuthUser } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { Button } from "../../ui/atoms/Button";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { PageHero } from "../../ui/templates/PageHero";
 import styles from "../FormPage.module.css";
+import pageStyles from "./AuthPages.module.css";
 
 type LoginResp = { token: string; user: AuthUser };
 
@@ -35,17 +39,17 @@ export function LoginPage() {
   }
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <h1 className="page-title">{t("login.title")}</h1>
-      <form className="card form-grid-2" onSubmit={submit} style={{ maxWidth: "28rem" }}>
+      <form className={`card form-grid-2 ${pageStyles.loginForm}`} onSubmit={submit}>
         {err && (
-          <p className="err full-span" style={{ margin: 0 }}>
+          <p className={`err full-span ${pageStyles.inlineMsgNoMargin}`}>
             {err}
           </p>
         )}
         <label className="full-span">
           {t("login.email")}
-          <input
+          <TextInput
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             autoComplete="username"
@@ -54,7 +58,7 @@ export function LoginPage() {
         </label>
         <label className="full-span">
           {t("login.password")}
-          <input
+          <TextInput
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -63,14 +67,14 @@ export function LoginPage() {
           />
         </label>
         <div className="full-span">
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {loading ? t("login.loading") : t("login.submit")}
-          </button>
+          </Button>
         </div>
         <p className={`${styles.authSwitch} full-span`}>
           {t("login.noAccount")} <Link to="/register">{t("nav.register")}</Link>
         </p>
       </form>
-    </div>
+    </PageHero>
   );
 }

@@ -1,0 +1,63 @@
+.desc {
+  font-size: 0.95rem;
+  margin-top: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.fileName {
+  align-self: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.noteOk {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.totalLine {
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+
+.itemsBlock {
+  margin-top: 1rem;
+}
+
+.itemsList {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.92rem;
+}
+
+.itemRow {
+  margin-bottom: 0.35rem;
+}
+
+.itemSumHint {
+  color: var(--muted);
+}
+
+.ocrDetails {
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.ocrSummary {
+  cursor: pointer;
+}
+
+.ocrPre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0.5rem 0 0;
+  font-family: inherit;
+}
+

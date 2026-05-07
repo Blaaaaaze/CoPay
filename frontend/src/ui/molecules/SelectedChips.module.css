@@ -1,0 +1,31 @@
+.wrap {
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+}
+
+.title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  line-height: 1.1;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { Button } from "../atoms/Button";
 import { IconChevron } from "../atoms/IconChevron";
 import styles from "./HeroCarousel.module.css";
 
@@ -67,31 +68,34 @@ export function HeroCarousel({ slides, autoMs = 0 }: Props) {
         </div>
         {n > 1 && (
           <>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               className={`${styles.arrow} ${styles.arrowLeft}`}
               onClick={prev}
               aria-label={t("carousel.prev")}
             >
               <IconChevron direction="left" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               className={`${styles.arrow} ${styles.arrowRight}`}
               onClick={next}
               aria-label={t("carousel.next")}
             >
               <IconChevron direction="right" />
-            </button>
+            </Button>
           </>
         )}
       </div>
       {n > 1 && (
         <div className={styles.dots} role="tablist" aria-label={t("carousel.list")}>
           {slides.map((_, idx) => (
-            <button
+            <Button
               key={idx}
               type="button"
+              variant="ghost"
               className={`${styles.dot} ${idx === i ? styles.dotActive : ""}`}
               aria-selected={idx === i}
               aria-label={t("carousel.slideN", { n: idx + 1 })}

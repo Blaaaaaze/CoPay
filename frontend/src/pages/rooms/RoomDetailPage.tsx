@@ -4,6 +4,9 @@ import { api } from "../../shared/api/client";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { formatMoney } from "../../shared/lib/currency";
+import { Button } from "../../ui/atoms/Button";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { PageHero } from "../../ui/templates/PageHero";
 import { ExpenseDisputeModal } from "./ExpenseDisputeModal";
 import { ExpenseViewModal } from "./ExpenseViewModal";
 import { ExpenseWizardModal } from "./ExpenseWizardModal";
@@ -173,27 +176,27 @@ export function RoomDetailPage() {
 
   if (!token) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <p className="section-text">{t("room.loginToOpen")}</p>
         <Link to="/login">{t("nav.login")}</Link>
-      </div>
+      </PageHero>
     );
   }
 
   if (err && !room) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <p className="err">{err}</p>
         <Link to="/rooms">{t("room.backToList")}</Link>
-      </div>
+      </PageHero>
     );
   }
 
   if (!room) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <p className={formStyles.subtle}>{t("common.loading")}</p>
-      </div>
+      </PageHero>
     );
   }
 
@@ -245,7 +248,7 @@ export function RoomDetailPage() {
 
   const activitySection = (
     <div className={styles.activityCard}>
-      <h2 className={formStyles.cardTitle} style={{ marginTop: 0 }}>
+      <h2 className={`${formStyles.cardTitle} ${styles.activityTitleNoTop}`}>
         {t("room.activityFeed")}
       </h2>
       {activities.length === 0 ? (
@@ -270,7 +273,7 @@ export function RoomDetailPage() {
       {balance && (
         <div className={styles.viewerBlock}>
           <h3>{t("room.balanceHint")}</h3>
-          <p className={formStyles.subtle} style={{ marginTop: 0 }}>
+          <p className={`${formStyles.subtle} ${styles.viewerSubtleNoTop}`}>
             {t("room.youPay")}
           </p>
           {balance.viewer.payTo.length === 0 ? (
@@ -306,7 +309,7 @@ export function RoomDetailPage() {
       <div className={styles.membersCard}>
         <h2>{t("room.members")}</h2>
         {!isCreator && (
-          <p className={formStyles.subtle} style={{ marginTop: 0, marginBottom: "0.65rem", fontSize: "0.9rem" }}>
+          <p className={`${formStyles.subtle} ${styles.membersLockedHint}`}>
             {t("room.membersLockedHint")}
           </p>
         )}
@@ -326,56 +329,57 @@ export function RoomDetailPage() {
                 </span>
                 {canRemove && (
                   !hasNonZero && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn-ghost"
+                      variant="ghost"
                       onClick={() => void removeMember(m.id)}
-                      style={{ opacity: 0.95 }}
+                      className={styles.removeMemberBtn}
                       title={t("common.delete")}
                     >
                       {t("common.delete")}
-                    </button>
+                    </Button>
                   )
                 )}
                 {owed && owed.amount > 0 && (
-                  <button
+                  <Button
                     type="button"
-                    className={`btn-primary ${styles.memberReceiveBtn}`}
+                    variant="primary"
+                    className={styles.memberReceiveBtn}
                     title={t("room.markReceivedHint")}
                     disabled={busy}
                     onClick={() => void recordReceived(m.id)}
                   >
                     {busy ? t("expense.saving") : `${t("room.markReceived")} · ${formatMoney(owed.amount, cur)}`}
-                  </button>
+                  </Button>
                 )}
               </li>
             );
           })}
         </ul>
         {isCreator && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.75rem" }}>
-            <button type="button" className="btn-ghost" onClick={() => setInviteOpen(true)}>
+          <div className={styles.creatorActionsRow}>
+            <Button type="button" variant="ghost" onClick={() => setInviteOpen(true)}>
               {t("room.invitePeople")}
-            </button>
+            </Button>
             {!roomHasActiveDebts && !viewerHasActiveDebts && (
-              <button
+              <Button
                 type="button"
-                className="fw-btn fw-btn-del"
+                variant="fwDel"
                 onClick={() => void deleteRoom()}
                 title={t("common.delete")}
-                style={{ border: "1px solid color-mix(in srgb, var(--danger, #ff4d4f) 40%, var(--border))" }}
+                className={styles.dangerOutline}
               >
                 {t("room.deleteRoom")}
-              </button>
+              </Button>
             )}
           </div>
         )}
       </div>
 
       {balance && (
-        <details className="card" style={{ marginTop: "0.5rem" }}>
-          <summary style={{ cursor: "pointer", fontWeight: 600 }}>{t("room.allTransfers")}</summary>
-          <div className={formStyles.balanceBox} style={{ marginTop: "0.75rem" }}>
+        <details className={`card ${styles.detailsCard}`}>
+          <summary className={styles.detailsSummary}>{t("room.allTransfers")}</summary>
+          <div className={`${formStyles.balanceBox} ${styles.balanceBoxTopGap}`}>
             <strong>{t("room.balancesByMember")}</strong>
             <ul>
               {Object.entries(balance.balances).map(([name, v]) => (
@@ -404,7 +408,7 @@ export function RoomDetailPage() {
   );
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <p className={formStyles.subtle}>
         <Link to="/rooms">← {t("nav.rooms")}</Link>
       </p>
@@ -413,13 +417,12 @@ export function RoomDetailPage() {
           {isCreator && !roomNameEditing ? (
             <h1 className={`page-title ${styles.roomTitleClickable}`} onClick={() => setRoomNameEditing(true)}>
               {room.name}{" "}
-              <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
+              <span className={styles.titleCurrency}>({cur})</span>
             </h1>
           ) : isCreator && roomNameEditing ? (
             <form className={styles.creatorTitleBlock} onSubmit={saveRoomName}>
               <div className={styles.creatorTitleRow}>
-                <input
-                  className={styles.roomNameInput}
+                <TextInput
                   value={roomNameDraft}
                   onChange={(e) => {
                     setRoomNameDraft(e.target.value);
@@ -429,25 +432,26 @@ export function RoomDetailPage() {
                   minLength={2}
                   required
                   autoFocus
+                  className={styles.roomNameInput}
                 />
                 <span className={styles.roomCurrencyBadge}>({cur})</span>
               </div>
               {nameErr && (
-                <p className="err" style={{ margin: "0.35rem 0 0" }}>
+                <p className={`err ${styles.nameErrMsg}`}>
                   {nameErr}
                 </p>
               )}
-              <div style={{ marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                <button
+              <div className={styles.nameActionsRow}>
+                <Button
                   type="submit"
-                  className="btn-primary"
+                  variant="primary"
                   disabled={nameSaving || roomNameDraft.trim().length < 2}
                 >
                   {nameSaving ? t("expense.saving") : t("common.save")}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="btn-ghost"
+                  variant="ghost"
                   disabled={nameSaving}
                   onClick={() => {
                     setRoomNameDraft(room.name);
@@ -456,21 +460,21 @@ export function RoomDetailPage() {
                   }}
                 >
                   {t("common.cancel")}
-                </button>
+                </Button>
               </div>
             </form>
           ) : (
             <h1 className="page-title">
               {room.name}{" "}
-              <span style={{ fontWeight: 500, fontSize: "1rem", color: "var(--muted)" }}>({cur})</span>
+              <span className={styles.titleCurrency}>({cur})</span>
             </h1>
           )}
           {err && <p className="err">{err}</p>}
 
           <div className={styles.roomToolbar}>
-            <button type="button" className="btn-primary" onClick={openCreate}>
+            <Button type="button" variant="primary" onClick={openCreate}>
               {t("room.newExpense")}
-            </button>
+            </Button>
           </div>
 
           {historySection}
@@ -533,6 +537,6 @@ export function RoomDetailPage() {
           }}
         />
       )}
-    </div>
+    </PageHero>
   );
 }

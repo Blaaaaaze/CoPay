@@ -3,6 +3,10 @@ import { api } from "../../shared/api/client";
 import { ReceiptParseButton } from "../../shared/receipt/ReceiptParseButton";
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { Modal } from "../../ui/molecules/Modal";
+import { Button } from "../../ui/atoms/Button";
+import { Checkbox } from "../../ui/atoms/Checkbox";
+import { Select } from "../../ui/atoms/Select";
+import { TextInput } from "../../ui/atoms/TextInput";
 import { currencySymbol, formatMoney } from "../../shared/lib/currency";
 import { mergeDuplicateRoomLines } from "../../shared/lib/mergeDuplicateLines";
 import type { Member, RoomExpense } from "./roomTypes";
@@ -205,8 +209,8 @@ export function ExpenseWizardModal({
 
           <div className="fw-input-row">
             <span>{t("expense.titleLabel")}</span>
-            <input
-              className="fw-base-input"
+            <TextInput
+              variant="fw"
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -214,13 +218,13 @@ export function ExpenseWizardModal({
               }}
               placeholder={t("expense.titlePh")}
             />
-            {titleErr && <span className="err" style={{ display: "block", marginTop: "0.25rem" }}>{titleErr}</span>}
+            {titleErr && <span className={`err ${styles.fieldErr}`}>{titleErr}</span>}
           </div>
 
           <div className="fw-input-row">
             <span>{t("expense.payer")}</span>
-            <select
-              className="fw-base-input"
+            <Select
+              variant="fw"
               value={payerId}
               onChange={(e) => setPayerId(e.target.value)}
             >
@@ -229,19 +233,15 @@ export function ExpenseWizardModal({
                   {members.find((m) => m.id === mid)?.fullName || mid}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
-          <label className="fw-check" style={{ marginBottom: "0.75rem", display: "flex" }}>
-            <input
-              type="checkbox"
-              checked={simpleMode}
-              onChange={(e) => setSimpleMode(e.target.checked)}
-            />
+          <label className={`fw-check ${styles.simpleSplitRow}`}>
+            <Checkbox checked={simpleMode} onChange={(e) => setSimpleMode(e.target.checked)} />
             {t("expense.simpleSplit")}
           </label>
 
-          <div style={{ marginBottom: "0.85rem" }}>
+          <div className={styles.receiptBlock}>
             <ReceiptParseButton
               label={t("expense.receiptUpload")}
               onError={(m) => setErr(m)}
@@ -276,8 +276,8 @@ export function ExpenseWizardModal({
               <span>
                 {t("expense.amount")} ({sym})
               </span>
-              <input
-                className="fw-base-input"
+              <TextInput
+                variant="fw"
                 value={simpleAmount}
                 onChange={(e) => {
                   setSimpleAmount(e.target.value);
@@ -286,28 +286,22 @@ export function ExpenseWizardModal({
                 inputMode="decimal"
                 placeholder="0"
               />
-              {amountErr && <span className="err" style={{ display: "block", marginTop: "0.25rem" }}>{amountErr}</span>}
+              {amountErr && <span className={`err ${styles.fieldErr}`}>{amountErr}</span>}
             </div>
           ) : (
             <>
-              <p className="section-text" style={{ fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
+              <p className={`section-text ${styles.linesHint}`}>
                 {t("expense.linesHint")}
               </p>
               {lines.map((line, i) => (
                 <div
                   key={i}
-                  style={{
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
-                    padding: "0.75rem",
-                    marginBottom: "0.75rem",
-                    background: "var(--page-bg)",
-                  }}
+                  className={styles.lineCard}
                 >
                   <div className="fw-input-row">
                     <span>{t("expense.product")}</span>
-                    <input
-                      className="fw-base-input"
+                    <TextInput
+                      variant="fw"
                       value={line.name}
                       onChange={(e) => updateLine(i, { name: e.target.value })}
                       placeholder={t("expense.milkPh")}
@@ -315,46 +309,42 @@ export function ExpenseWizardModal({
                   </div>
                   <div className="fw-input-row">
                     <span>{t("expense.amount")}</span>
-                    <input
-                      className="fw-base-input"
+                    <TextInput
+                      variant="fw"
                       value={line.amount}
                       onChange={(e) => updateLine(i, { amount: e.target.value })}
                       inputMode="decimal"
                       placeholder="0"
                     />
                   </div>
-                  <div className="fw-persons-grid" style={{ justifyContent: "flex-start" }}>
+                  <div className={`fw-persons-grid ${styles.linePersonsGrid}`}>
                     {memberIds.map((mid) => {
                       const m = members.find((x) => x.id === mid);
                       return (
                         <label key={mid} className="fw-check">
-                          <input
-                            type="checkbox"
-                            checked={line.participantIds.includes(mid)}
-                            onChange={() => toggleParticipant(i, mid)}
-                          />
+                          <Checkbox checked={line.participantIds.includes(mid)} onChange={() => toggleParticipant(i, mid)} />
                           {m?.fullName || mid}
                         </label>
                       );
                     })}
                   </div>
-                  <button
+                  <Button
                     type="button"
-                    className="fw-btn fw-btn-del"
+                    variant="fwDel"
                     onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
                     disabled={lines.length <= 1}
                   >
                     {t("expense.removeLine")}
-                  </button>
+                  </Button>
                 </div>
               ))}
-              <button
+              <Button
                 type="button"
-                className="fw-btn fw-btn-add"
+                variant="fwAdd"
                 onClick={() => setLines((prev) => [...prev, emptyLine()])}
               >
                 {t("expense.addLine")}
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -367,16 +357,16 @@ export function ExpenseWizardModal({
             })}
           </p>
           <div className={styles.actions}>
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <Button type="submit" variant="primary" disabled={loading}>
               {loading
                 ? t("expense.saving")
                 : editing
                   ? t("common.save")
                   : t("expense.create")}
-            </button>
-            <button type="button" className="btn-ghost" onClick={onClose}>
+            </Button>
+            <Button type="button" variant="ghost" onClick={onClose}>
               {t("common.cancel")}
-            </button>
+            </Button>
           </div>
         </div>
       </form>

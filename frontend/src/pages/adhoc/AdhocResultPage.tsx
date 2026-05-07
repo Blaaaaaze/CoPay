@@ -5,7 +5,12 @@ import { useI18n } from "../../shared/i18n/I18nContext";
 import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { formatMoney } from "../../shared/lib/currency";
 import { showToast } from "../../shared/ui/toast";
+import { Button } from "../../ui/atoms/Button";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { PageHero } from "../../ui/templates/PageHero";
+import { CalcLayout } from "../../ui/templates/CalcLayout";
 import styles from "../FormPage.module.css";
+import pageStyles from "./AdhocResultPage.module.css";
 
 type LineItem = { name: string; price: number; participants: string[] };
 
@@ -75,18 +80,18 @@ export function AdhocResultPage() {
 
   if (err && !data) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <p className="err">{err}</p>
         <Link to="/calculator">{t("adhoc.newCalc")}</Link>
-      </div>
+      </PageHero>
     );
   }
 
   if (!data) {
     return (
-      <div className="container page-hero">
+      <PageHero>
         <p className={styles.subtle}>{t("common.loading")}</p>
-      </div>
+      </PageHero>
     );
   }
 
@@ -112,11 +117,11 @@ export function AdhocResultPage() {
   });
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <h1 className="page-title">{t("adhoc.resultTitle")}</h1>
       <p className="section-text">{summary}</p>
 
-      <div className="calc-layout">
+      <CalcLayout>
         {(data.lineItems?.length ?? 0) > 0 && (
           <section className="fw-panel calc-span-2">
             <h2 className={styles.cardTitle}>{t("adhoc.lineItems")}</h2>
@@ -133,31 +138,17 @@ export function AdhocResultPage() {
 
         <section className="fw-panel calc-span-2">
           <h2 className={styles.cardTitle}>{t("adhoc.perPersonTitle")}</h2>
-          <div
-            style={{
-              display: "grid",
-              gap: "1rem",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            }}
-          >
+          <div className={pageStyles.perPersonGrid}>
             {perPerson.map((p) => (
-              <div
-                key={p.name}
-                style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                  padding: "0.75rem 1rem",
-                  background: "var(--page-bg)",
-                }}
-              >
-                <h3 style={{ margin: "0 0 0.35rem", fontSize: "1.05rem" }}>{p.name}</h3>
-                <p style={{ margin: "0 0 0.5rem", fontWeight: 600 }}>
+              <div key={p.name} className={pageStyles.perPersonCard}>
+                <h3 className={pageStyles.perPersonName}>{p.name}</h3>
+                <p className={pageStyles.perPersonTotal}>
                   {t("adhoc.share")}: {formatMoney(p.total, cur)}
                 </p>
-                <p className={styles.subtle} style={{ margin: 0, fontSize: "0.85rem" }}>
+                <p className={`${styles.subtle} ${pageStyles.perPersonItemsLabel}`}>
                   {t("adhoc.items")}:
                 </p>
-                <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.1rem", fontSize: "0.9rem" }}>
+                <ul className={pageStyles.perPersonItemsList}>
                   {p.items.length === 0 ? (
                     <li>—</li>
                   ) : (
@@ -191,31 +182,31 @@ export function AdhocResultPage() {
             </ul>
           )}
 
-          <h3 className={styles.cardTitle} style={{ marginTop: "1.25rem", fontSize: "1rem" }}>
+          <h3 className={`${styles.cardTitle} ${pageStyles.myTransfersTitle}`}>
             {t("adhoc.myTransfers")}
           </h3>
           <p className={styles.subtle}>{t("adhoc.nameHint")}</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: "0.75rem" }}>
-            <input
-              className="fw-base-input"
-              style={{ flex: "1 1 180px", marginBottom: 0 }}
+          <div className={pageStyles.viewerToolbar}>
+            <TextInput
+              variant="fw"
               value={viewerName}
               onChange={(e) => setViewerName(e.target.value)}
               placeholder={t("adhoc.yourName")}
               list="adhoc-names"
+              className={pageStyles.viewerNameInput}
             />
             <datalist id="adhoc-names">
               {data.participants.map((n) => (
                 <option key={n} value={n} />
               ))}
             </datalist>
-            <button type="button" className="btn-ghost" onClick={applyViewer} disabled={loadingViewer}>
+            <Button type="button" variant="ghost" onClick={applyViewer} disabled={loadingViewer}>
               {t("common.show")}
-            </button>
+            </Button>
           </div>
           {data.viewer && (data.viewer.payTo.length > 0 || data.viewer.receiveFrom.length > 0) && (
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
-              <p className={styles.subtle} style={{ marginTop: 0 }}>
+            <div className={pageStyles.viewerBlock}>
+              <p className={`${styles.subtle} ${pageStyles.subtleNoTop}`}>
                 {t("adhoc.youSend")}
               </p>
               <ul>
@@ -245,13 +236,13 @@ export function AdhocResultPage() {
           )}
         </section>
 
-        <div className="card calc-span-2" style={{ marginTop: 0 }}>
+        <div className={`card calc-span-2 ${pageStyles.linkCard}`}>
           <h2 className={styles.cardTitle}>{t("adhoc.linkTitle")}</h2>
           <p className={styles.subtle}>{t("adhoc.linkHint")}</p>
-          <input readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
-          <button
+          <TextInput readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
+          <Button
             type="button"
-            className="btn-ghost"
+            variant="ghost"
             onClick={async () => {
               setErr("");
               const ok = await copyToClipboard(shareUrl);
@@ -260,15 +251,15 @@ export function AdhocResultPage() {
             }}
           >
             {t("common.copy")}
-          </button>
+          </Button>
         </div>
-      </div>
+      </CalcLayout>
 
       {err && data && <p className="err">{err}</p>}
 
-      <p style={{ marginTop: "1.5rem" }}>
+      <p className={pageStyles.footerLinkRow}>
         <Link to="/calculator">{t("adhoc.newCalc")}</Link>
       </p>
-    </div>
+    </PageHero>
   );
 }

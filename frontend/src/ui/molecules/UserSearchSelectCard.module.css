@@ -1,0 +1,53 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.88rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  height: 100%;
+  width: 100%;
+  min-height: 4.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card:hover {
+  background: var(--surface-2);
+}
+
+.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.checkbox {
+  flex: 0 0 auto;
+  margin: 0.15rem 0 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.name {
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  line-height: 1.2;
+  text-align: center;
+  width: 100%;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+

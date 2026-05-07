@@ -1,0 +1,34 @@
+.hitsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(11rem, 1fr));
+  gap: 0.35rem;
+  padding: 0.35rem;
+}
+
+@media (max-width: 980px) {
+  .hitsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .hitsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .hitsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hitItem {
+  list-style: none;
+}
+
+.heading {
+  margin-top: 0;
+  font-size: 1rem;
+}
+

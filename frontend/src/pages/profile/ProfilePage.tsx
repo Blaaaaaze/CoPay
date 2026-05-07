@@ -6,7 +6,12 @@ import { useI18n } from "../../shared/i18n/I18nContext";
 import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { normalizeMediaUrl } from "../../shared/lib/mediaUrl";
 import { showToast } from "../../shared/ui/toast";
+import { Button } from "../../ui/atoms/Button";
+import { FileInput } from "../../ui/atoms/FileInput";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { PageHero } from "../../ui/templates/PageHero";
 import styles from "../FormPage.module.css";
+import pageStyles from "./ProfilePage.module.css";
 
 export function ProfilePage() {
   const { token, setSession } = useAuth();
@@ -108,37 +113,29 @@ export function ProfilePage() {
     normalizeMediaUrl(profile?.avatarUrl ?? undefined) ?? profile?.avatarUrl;
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <h1 className="page-title">{t("profile.title")}</h1>
       <p className={styles.subtle}>
         <Link to="/rooms">{t("nav.rooms")}</Link>
       </p>
 
       {profile && (
-        <div className="card" style={{ maxWidth: "48rem", marginBottom: "1.5rem" }}>
+        <div className={`card ${pageStyles.panel48WithBottomGap}`}>
           <h2 className={styles.cardTitle}>{t("profile.inviteTitle")}</h2>
-          <p className="section-text" style={{ marginBottom: "0.75rem" }}>
+          <p className={`section-text ${pageStyles.inviteText}`}>
             {t("profile.inviteText")}
           </p>
-          <p
-            style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              letterSpacing: "0.12em",
-              fontFamily: "ui-monospace, monospace",
-            }}
-          >
+          <p className={pageStyles.inviteCode}>
             {profile.inviteCode}
           </p>
-          <button type="button" className="btn-ghost" onClick={copyCode}>
+          <Button type="button" variant="ghost" onClick={copyCode}>
             {t("profile.copyCode")}
-          </button>
+          </Button>
         </div>
       )}
 
       <div
-        className="card form-grid-2"
-        style={{ maxWidth: "48rem", marginBottom: "1.5rem", alignItems: "start" }}
+        className={`card form-grid-2 ${pageStyles.avatarPanel}`}
       >
         <div className="full-span">
           <h2 className={styles.cardTitle}>{t("profile.avatar")}</h2>
@@ -151,36 +148,31 @@ export function ProfilePage() {
               width={120}
               height={120}
               onError={() => setAvatarBroken(true)}
-              style={{
-                borderRadius: 16,
-                objectFit: "cover",
-                marginBottom: "0.75rem",
-                display: "block",
-              }}
+              className={pageStyles.avatarImg}
             />
           </div>
         )}
         <label className={`${styles.fileLabel} full-span`}>
-          <input type="file" accept="image/*" onChange={onAvatar} disabled={loading} />
+          <FileInput accept="image/*" onChange={onAvatar} disabled={loading} />
           {t("profile.uploadPhoto")}
         </label>
       </div>
 
-      <form className="card form-grid-2" onSubmit={saveProfile} style={{ maxWidth: "48rem" }}>
+      <form className={`card form-grid-2 ${pageStyles.panel48}`} onSubmit={saveProfile}>
         <h2 className={`${styles.cardTitle} full-span`}>{t("profile.data")}</h2>
         {err && (
-          <p className={`err full-span`} style={{ margin: 0 }}>
+          <p className={`err full-span ${pageStyles.inlineMsgNoMargin}`}>
             {err}
           </p>
         )}
         {ok && (
-          <p className={`ok full-span`} style={{ margin: 0 }}>
+          <p className={`ok full-span ${pageStyles.inlineMsgNoMargin}`}>
             {ok}
           </p>
         )}
         <label>
           {t("profile.firstName")}
-          <input
+          <TextInput
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required
@@ -188,22 +180,22 @@ export function ProfilePage() {
         </label>
         <label>
           {t("profile.lastName")}
-          <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          <TextInput value={lastName} onChange={(e) => setLastName(e.target.value)} />
         </label>
         <label className="full-span">
           {t("profile.email")}
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className="full-span">
           {t("profile.phone")}
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <TextInput value={phone} onChange={(e) => setPhone(e.target.value)} />
         </label>
         <div className="full-span">
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {t("common.save")}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </PageHero>
   );
 }

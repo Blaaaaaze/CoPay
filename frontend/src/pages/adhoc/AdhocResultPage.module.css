@@ -1,0 +1,68 @@
+.perPersonGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.perPersonCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: var(--page-bg);
+}
+
+.perPersonName {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.perPersonTotal {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.perPersonItemsLabel {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.perPersonItemsList {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.myTransfersTitle {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+}
+
+.viewerToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.viewerNameInput {
+  flex: 1 1 180px;
+  margin-bottom: 0;
+}
+
+.viewerBlock {
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.subtleNoTop {
+  margin-top: 0;
+}
+
+.linkCard {
+  margin-top: 0;
+}
+
+.footerLinkRow {
+  margin-top: 1.5rem;
+}
+

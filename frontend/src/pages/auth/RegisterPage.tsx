@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../shared/api/client";
 import { useAuth, type AuthUser } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { Button } from "../../ui/atoms/Button";
+import { TextInput } from "../../ui/atoms/TextInput";
+import { PageHero } from "../../ui/templates/PageHero";
 import styles from "../FormPage.module.css";
+import pageStyles from "./AuthPages.module.css";
 
 type RegResp = { token: string; user: AuthUser };
 
@@ -42,25 +46,25 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="container page-hero">
+    <PageHero>
       <h1 className="page-title">{t("register.title")}</h1>
-      <form className="card form-grid-2" onSubmit={submit} style={{ maxWidth: "40rem" }}>
+      <form className={`card form-grid-2 ${pageStyles.registerForm}`} onSubmit={submit}>
         {err && (
-          <p className="err full-span" style={{ margin: 0 }}>
+          <p className={`err full-span ${pageStyles.inlineMsgNoMargin}`}>
             {err}
           </p>
         )}
         <label>
           {t("register.firstName")}
-          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+          <TextInput value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
         </label>
         <label>
           {t("register.lastName")}
-          <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          <TextInput value={lastName} onChange={(e) => setLastName(e.target.value)} />
         </label>
         <label className="full-span">
           {t("register.email")}
-          <input
+          <TextInput
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -70,7 +74,7 @@ export function RegisterPage() {
         </label>
         <label className="full-span">
           {t("register.password")}
-          <input
+          <TextInput
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -80,14 +84,14 @@ export function RegisterPage() {
           />
         </label>
         <div className="full-span">
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {loading ? t("register.loading") : t("register.submit")}
-          </button>
+          </Button>
         </div>
         <p className={`${styles.authSwitch} full-span`}>
           {t("register.hasAccount")} <Link to="/login">{t("nav.login")}</Link>
         </p>
       </form>
-    </div>
+    </PageHero>
   );
 }

@@ -1,7 +1,9 @@
 import { useI18n } from "../../shared/i18n/I18nContext";
 import { formatMoney } from "../../shared/lib/currency";
 import { Modal } from "../../ui/molecules/Modal";
+import { Button } from "../../ui/atoms/Button";
 import type { RoomExpense } from "./roomTypes";
+import styles from "./ExpenseViewModal.module.css";
 
 type Props = {
   open: boolean;
@@ -35,27 +37,27 @@ export function ExpenseViewModal({
 
   return (
     <Modal open={open} onClose={onClose} title={expense.title} wide>
-      <p style={{ marginTop: 0, fontSize: "1.05rem", fontWeight: 600 }}>
+      <p className={styles.amountLine}>
         {formatMoney(expense.amount, currency)}
       </p>
-      <p className="section-text" style={{ margin: "0.35rem 0" }}>
+      <p className={`section-text ${styles.metaLine}`}>
         {t("expense.payer")}: <strong>{nameById(expense.payerId)}</strong>
       </p>
-      <p className="section-text" style={{ margin: "0.35rem 0", fontSize: "0.9rem" }}>
+      <p className={`section-text ${styles.authorLine}`}>
         {t("room.expenseAuthor")}: <strong>{nameById(authorId)}</strong>
       </p>
-      <p className="section-text" style={{ margin: "0.35rem 0", fontSize: "0.85rem", color: "var(--muted)" }}>
+      <p className={`section-text ${styles.dateLine}`}>
         {new Date(expense.createdAt).toLocaleString()}
       </p>
 
       {expense.lineItems && expense.lineItems.length > 0 && (
         <>
-          <h3 style={{ fontSize: "1rem", margin: "0.75rem 0 0.35rem" }}>{t("adhoc.lineItems")}</h3>
-          <ul style={{ margin: 0, paddingLeft: "1.1rem" }}>
+          <h3 className={styles.sectionTitle}>{t("adhoc.lineItems")}</h3>
+          <ul className={styles.itemsList}>
             {expense.lineItems.map((li, i) => (
               <li key={i}>
                 {li.name} — {formatMoney(li.amount, currency)}
-                <span style={{ color: "var(--muted)", fontSize: "0.88rem" }}>
+                <span className={styles.itemsHint}>
                   {" "}
                   ({li.participantIds.map((id) => nameById(id)).join(", ")})
                 </span>
@@ -67,11 +69,11 @@ export function ExpenseViewModal({
 
       {expense.disputes && expense.disputes.length > 0 && (
         <>
-          <h3 style={{ fontSize: "1rem", margin: "0.75rem 0 0.35rem" }}>{t("room.disputesHeading")}</h3>
-          <ul style={{ margin: 0, paddingLeft: "1.1rem", fontSize: "0.9rem" }}>
+          <h3 className={styles.sectionTitle}>{t("room.disputesHeading")}</h3>
+          <ul className={styles.disputesList}>
             {expense.disputes.map((d, i) => (
-              <li key={i} style={{ marginBottom: "0.5rem" }}>
-                <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+              <li key={i} className={styles.disputeRow}>
+                <span className={styles.disputeMeta}>
                   {nameById(d.userId)} · {new Date(d.createdAt).toLocaleString()}
                 </span>
                 <br />
@@ -82,46 +84,46 @@ export function ExpenseViewModal({
         </>
       )}
 
-      <div style={{ marginTop: "1.25rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+      <div className={styles.actionsRow}>
         {isAuthor && (
           <>
-            <button
+            <Button
               type="button"
-              className="btn-primary"
+              variant="primary"
               onClick={() => {
                 onEdit(expense);
                 onClose();
               }}
             >
               {t("common.edit")}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="fw-btn fw-btn-del"
+              variant="fwDel"
               onClick={() => {
                 onDelete(expense);
                 onClose();
               }}
             >
               {t("common.delete")}
-            </button>
+            </Button>
           </>
         )}
         {canDispute && (
-          <button
+          <Button
             type="button"
-            className="btn-ghost"
+            variant="ghost"
             onClick={() => {
               onDispute(expense);
               onClose();
             }}
           >
             {t("room.dispute")}
-          </button>
+          </Button>
         )}
-        <button type="button" className="btn-ghost" onClick={onClose}>
+        <Button type="button" variant="ghost" onClick={onClose}>
           {t("common.close")}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

@@ -273,3 +273,62 @@
   color: var(--muted);
   white-space: nowrap;
 }
+
+.activityTitleNoTop {
+  margin-top: 0;
+}
+
+.viewerSubtleNoTop {
+  margin-top: 0;
+}
+
+.membersLockedHint {
+  margin-top: 0;
+  margin-bottom: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.removeMemberBtn {
+  opacity: 0.95;
+}
+
+.creatorActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.dangerOutline {
+  border: 1px solid color-mix(in srgb, var(--danger, #ff4d4f) 40%, var(--border));
+}
+
+.detailsCard {
+  margin-top: 0.5rem;
+}
+
+.detailsSummary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.balanceBoxTopGap {
+  margin-top: 0.75rem;
+}
+
+.titleCurrency {
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.nameErrMsg {
+  margin: 0.35rem 0 0;
+}
+
+.nameActionsRow {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

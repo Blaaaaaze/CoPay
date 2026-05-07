@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { Button } from "../atoms/Button";
 import styles from "./Modal.module.css";
 
 let bodyScrollLockCount = 0;
@@ -74,9 +75,9 @@ export function Modal({ open, title, children, onClose, wide, bodyClassName }: P
           <h2 id="modal-title" className={styles.title}>
             {title}
           </h2>
-          <button type="button" className={styles.close} onClick={onClose} aria-label={t("common.close")}>
+          <Button type="button" variant="ghost" className={styles.close} onClick={onClose} aria-label={t("common.close")}>
             ×
-          </button>
+          </Button>
         </div>
         <div className={bodyClass}>{children}</div>
       </div>

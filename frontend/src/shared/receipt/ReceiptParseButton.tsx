@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { apiUpload } from "../api/client";
 import { useI18n } from "../i18n/I18nContext";
+import { Button } from "../../ui/atoms/Button";
+import { FileInput } from "../../ui/atoms/FileInput";
 
 export type ReceiptParsedItem = { name: string; qty: number; price: number };
 
@@ -44,21 +46,21 @@ export function ReceiptParseButton({ label, disabled, className, onParsed, onErr
 
   return (
     <>
-      <input
+      <FileInput
         ref={inputRef}
-        type="file"
         accept="image/*"
         hidden
         onChange={(e) => void onFile(e)}
       />
-      <button
+      <Button
         type="button"
-        className={className ?? "btn-ghost"}
+        variant="ghost"
+        className={className}
         disabled={disabled || loading}
         onClick={() => inputRef.current?.click()}
       >
         {loading ? t("common.loading") : label}
-      </button>
+      </Button>
     </>
   );
 }
