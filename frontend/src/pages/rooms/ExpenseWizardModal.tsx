@@ -46,6 +46,8 @@ export function ExpenseWizardModal({
   const [simpleAmount, setSimpleAmount] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([]);
   const [err, setErr] = useState("");
+  const [titleErr, setTitleErr] = useState("");
+  const [amountErr, setAmountErr] = useState("");
   const [loading, setLoading] = useState(false);
 
   const sym = currencySymbol(currency);
@@ -119,21 +121,39 @@ export function ExpenseWizardModal({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setTitleErr("");
+    setAmountErr("");
+    if (!title.trim()) {
+      setTitleErr(t("expense.needTitle"));
+      return;
+    }
     setLoading(true);
     try {
       const body: Record<string, unknown> = {
-        title: title.trim() || t("expense.defaultTitle"),
+        title: title.trim(),
         payerId,
       };
       if (simpleMode) {
         const amt = Number(simpleAmount.replace(",", "."));
         if (!amt || amt <= 0) {
-          setErr(t("expense.needAmount"));
+          setAmountErr(t("expense.needAmount"));
           setLoading(false);
           return;
         }
         body.amount = amt;
       } else {
+        for (const L of lines) {
+          if (L.name.trim() && (!L.amount.trim() || Number(L.amount.replace(",", ".")) <= 0)) {
+            setErr(t("expense.needLineAmount"));
+            setLoading(false);
+            return;
+          }
+          if (L.amount.trim() && !L.name.trim()) {
+            setErr(t("expense.needLineName"));
+            setLoading(false);
+            return;
+          }
+        }
         const lineItems = mergeDuplicateRoomLines(lines)
           .map((L) => ({
             name: L.name.trim(),
@@ -188,9 +208,13 @@ export function ExpenseWizardModal({
             <input
               className="fw-base-input"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setTitleErr("");
+              }}
               placeholder={t("expense.titlePh")}
             />
+            {titleErr && <span className="err" style={{ display: "block", marginTop: "0.25rem" }}>{titleErr}</span>}
           </div>
 
           <div className="fw-input-row">
@@ -255,10 +279,14 @@ export function ExpenseWizardModal({
               <input
                 className="fw-base-input"
                 value={simpleAmount}
-                onChange={(e) => setSimpleAmount(e.target.value)}
+                onChange={(e) => {
+                  setSimpleAmount(e.target.value);
+                  setAmountErr("");
+                }}
                 inputMode="decimal"
                 placeholder="0"
               />
+              {amountErr && <span className="err" style={{ display: "block", marginTop: "0.25rem" }}>{amountErr}</span>}
             </div>
           ) : (
             <>

@@ -46,7 +46,9 @@ export type BalanceViewer = {
 export type BalanceResp = {
   currency: string;
   balances: Record<string, number>;
+  balancesById?: Record<string, number>;
   transfers: { from: string; to: string; amount: number }[];
+  transfersById?: { fromUserId: string; toUserId: string; amount: number }[];
   viewer: BalanceViewer;
   perMember: Record<string, BalanceViewer>;
 };
@@ -56,6 +58,7 @@ export type SearchHit = {
   fullName: string;
   displayName: string;
   lastName: string;
+  inviteCode?: string;
 };
 
 export type RoomActivityItem = {

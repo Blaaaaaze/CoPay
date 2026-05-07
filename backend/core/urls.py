@@ -12,6 +12,7 @@ urlpatterns = [
     path("users/search", views.user_search),
     path("rooms", views.rooms),
     path("rooms/<uuid:room_id>/members", views.room_add_member),
+    path("rooms/<uuid:room_id>/members/<uuid:user_id>", views.room_remove_member),
     path("rooms/<uuid:room_id>/expenses/<uuid:expense_id>/dispute", views.expense_dispute),
     path("rooms/<uuid:room_id>/expenses/<uuid:expense_id>", views.expense_detail),
     path("rooms/<uuid:room_id>/expenses", views.room_expenses),

@@ -13,12 +13,14 @@ import { RegisterPage } from "../pages/auth/RegisterPage";
 import { AdhocResultPage } from "../pages/adhoc/AdhocResultPage";
 import { ProfilePage } from "../pages/profile/ProfilePage";
 import { SettingsPage } from "../pages/settings/SettingsPage";
+import { ToastHost } from "../shared/ui/ToastHost";
 
 export default function App() {
   return (
     <AppShell>
       <PreferenceSync />
       <AppHeader />
+      <ToastHost />
       <main className="app-main">
         <Routes>
           <Route path="/" element={<HomePage />} />

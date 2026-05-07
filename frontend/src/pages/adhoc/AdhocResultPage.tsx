@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../../shared/api/client";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { formatMoney } from "../../shared/lib/currency";
+import { showToast } from "../../shared/ui/toast";
 import styles from "../FormPage.module.css";
 
 type LineItem = { name: string; price: number; participants: string[] };
@@ -250,7 +252,12 @@ export function AdhocResultPage() {
           <button
             type="button"
             className="btn-ghost"
-            onClick={() => navigator.clipboard.writeText(shareUrl)}
+            onClick={async () => {
+              setErr("");
+              const ok = await copyToClipboard(shareUrl);
+              if (ok) showToast(t("common.copied"));
+              else setErr(t("common.error"));
+            }}
           >
             {t("common.copy")}
           </button>

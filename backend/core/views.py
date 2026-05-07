@@ -39,36 +39,163 @@ def _body(request) -> dict:
         return {}
 
 
-def _raw_balances_from_expenses(room):
+def _to_cents(v) -> int:
+    try:
+        return int(round(Decimal(str(v)) * 100))
+    except Exception:
+        return 0
+
+
+def _split_amount_cents(total_cents: int, weights: list[Decimal]) -> list[int]:
+    """
+    Deterministically split `total_cents` into integer cents by weights.
+    Sum of result is always exactly total_cents.
+    """
+    n = len(weights)
+    if n == 0:
+        return []
+    tw = sum(weights)
+    if tw <= 0:
+        base = total_cents // n
+        rem = total_cents - base * n
+        out = [base] * n
+        for i in range(rem):
+            out[i] += 1
+        return out
+
+    # Largest remainder method.
+    exact = [Decimal(total_cents) * w / tw for w in weights]
+    floors = [int(x.to_integral_value(rounding="ROUND_FLOOR")) for x in exact]
+    rem = total_cents - sum(floors)
+    fracs = [(i, float(exact[i] - Decimal(floors[i]))) for i in range(n)]
+    fracs.sort(key=lambda x: -x[1])
+    out = floors[:]
+    for k in range(rem):
+        out[fracs[k % n][0]] += 1
+    return out
+
+
+def _pair_debts_from_expenses(room) -> tuple[list[str], dict[tuple[str, str], int]]:
+    """
+    Build directed debts in integer cents.
+
+    For each expense: every participant (except payer) owes the payer their share.
+    Result is a mapping (from_user_id, to_user_id) -> cents owed.
+    """
     member_ids = [str(m.id) for m in room.members.all()]
-    raw_bal = {mid: 0.0 for mid in member_ids}
+    debts: dict[tuple[str, str], int] = {}
     for ex in room.expenses.order_by("created_at"):
-        pid = str(ex.payer_id)
-        amt = float(ex.amount)
-        raw_bal[pid] = raw_bal.get(pid, 0) + amt
-        tw = sum(float(ex.shares.get(mid, 0) or 0) for mid in member_ids)
-        if tw <= 0:
-            n = len(member_ids)
-            if n > 0:
-                share_amt = amt / n
-                for mid in member_ids:
-                    raw_bal[mid] -= share_amt
-            continue
-        for mid in member_ids:
-            w = float(ex.shares.get(mid, 0) or 0)
-            raw_bal[mid] -= amt * w / tw
-    return raw_bal
+        payer_id = str(ex.payer_id)
+        amt_cents = _to_cents(ex.amount)
+        weights = [Decimal(str(ex.shares.get(mid, 0) or 0)) for mid in member_ids]
+        parts = _split_amount_cents(amt_cents, weights)
+        for mid, part_cents in zip(member_ids, parts):
+            if mid == payer_id:
+                continue
+            if part_cents <= 0:
+                continue
+            key = (mid, payer_id)
+            debts[key] = debts.get(key, 0) + int(part_cents)
+    return member_ids, debts
 
 
-def _apply_settlements_to_balances(room, raw_bal):
-    s = {k: float(v) for k, v in raw_bal.items()}
+def _apply_settlements_to_pair_debts(room, debts: dict[tuple[str, str], int]) -> dict[tuple[str, str], int]:
+    """
+    Apply settlements to directed pair debts.
+
+    If someone overpays their debt to a counterparty, the excess becomes a reverse debt.
+    """
+    out = dict(debts)
     for st in room.settlements.all():
         fid = str(st.from_user_id)
         tid = str(st.to_user_id)
-        amt = float(st.amount)
-        s[fid] = s.get(fid, 0.0) + amt
-        s[tid] = s.get(tid, 0.0) - amt
-    return s
+        amt = _to_cents(st.amount)
+        if amt <= 0 or fid == tid:
+            continue
+        key = (fid, tid)
+        cur = out.get(key, 0)
+        if cur >= amt:
+            nxt = cur - amt
+            if nxt > 0:
+                out[key] = nxt
+            else:
+                out.pop(key, None)
+            continue
+        # overpayment => reverse debt
+        out.pop(key, None)
+        excess = amt - cur
+        if excess > 0:
+            rkey = (tid, fid)
+            out[rkey] = out.get(rkey, 0) + excess
+    return out
+
+
+def _net_mutual_pair_debts(debts: dict[tuple[str, str], int]) -> dict[tuple[str, str], int]:
+    """
+    Net mutual debts: if A owes B and B owes A, keep only the difference.
+    """
+    out: dict[tuple[str, str], int] = {}
+    seen: set[tuple[str, str]] = set()
+    for (a, b), ab in debts.items():
+        if ab <= 0 or a == b:
+            continue
+        if (a, b) in seen:
+            continue
+        ba = debts.get((b, a), 0)
+        seen.add((a, b))
+        seen.add((b, a))
+        if ba <= 0:
+            out[(a, b)] = ab
+            continue
+        if ab > ba:
+            out[(a, b)] = ab - ba
+        elif ba > ab:
+            out[(b, a)] = ba - ab
+        # equal => cancel out entirely
+    return out
+
+
+def _net_balances_from_pair_debts(member_ids: list[str], debts: dict[tuple[str, str], int]) -> dict[str, float]:
+    """
+    Convert pair debts to net balances (currency units).
+    Positive => net creditor, negative => net debtor.
+    """
+    bal_cents = {mid: 0 for mid in member_ids}
+    for (frm, to), cents in debts.items():
+        if cents <= 0:
+            continue
+        bal_cents[frm] = bal_cents.get(frm, 0) - cents
+        bal_cents[to] = bal_cents.get(to, 0) + cents
+    return {k: v / 100.0 for k, v in bal_cents.items()}
+
+
+def _raw_balances_from_expenses(room):
+    member_ids = [str(m.id) for m in room.members.all()]
+    raw_cents = {mid: 0 for mid in member_ids}
+    for ex in room.expenses.order_by("created_at"):
+        pid = str(ex.payer_id)
+        amt_cents = _to_cents(ex.amount)
+        raw_cents[pid] = raw_cents.get(pid, 0) + amt_cents
+
+        weights = [Decimal(str(ex.shares.get(mid, 0) or 0)) for mid in member_ids]
+        parts = _split_amount_cents(amt_cents, weights)
+        for mid, part_cents in zip(member_ids, parts):
+            raw_cents[mid] = raw_cents.get(mid, 0) - int(part_cents)
+
+    # return in currency units for existing callers
+    return {k: v / 100.0 for k, v in raw_cents.items()}
+
+
+def _apply_settlements_to_balances(room, raw_bal):
+    s_cents = {k: _to_cents(v) for k, v in raw_bal.items()}
+    for st in room.settlements.all():
+        fid = str(st.from_user_id)
+        tid = str(st.to_user_id)
+        amt_cents = _to_cents(st.amount)
+        s_cents[fid] = s_cents.get(fid, 0) + amt_cents
+        s_cents[tid] = s_cents.get(tid, 0) - amt_cents
+
+    return {k: v / 100.0 for k, v in s_cents.items()}
 
 
 def _log_room_activity(room, actor, kind, payload=None):
@@ -255,7 +382,13 @@ def user_search(request):
         return JsonResponse([], safe=False)
     tokens = q.split()
     qs = User.objects.exclude(pk=user.pk)
-    name_q = Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(username__icontains=q)
+    q_upper = q.upper()
+    name_q = (
+        Q(first_name__icontains=q)
+        | Q(last_name__icontains=q)
+        | Q(username__icontains=q)
+        | Q(invite_code__icontains=q_upper)
+    )
     for t in tokens:
         if len(t) >= 2:
             name_q |= Q(first_name__icontains=t) | Q(last_name__icontains=t)
@@ -269,6 +402,7 @@ def user_search(request):
                 p for p in [u.first_name or "", u.last_name or ""] if p
             ).strip()
             or u.username,
+            "inviteCode": u.invite_code,
         }
         for u in qs
     ]
@@ -300,7 +434,7 @@ def _room_detail_json(room):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "PATCH"])
+@require_http_methods(["GET", "PATCH", "DELETE"])
 def room_detail(request, room_id):
     user, err = _require_auth(request)
     if err:
@@ -310,6 +444,16 @@ def room_detail(request, room_id):
         return e
     if request.method == "GET":
         return JsonResponse(_room_detail_json(room))
+    if request.method == "DELETE":
+        if room.created_by_id != user.id:
+            return JsonResponse({"error": "Только создатель может удалить комнату"}, status=403)
+        member_ids, debts = _pair_debts_from_expenses(room)
+        debts = _apply_settlements_to_pair_debts(room, debts)
+        debts = _net_mutual_pair_debts(debts)
+        if any(c > 0 for c in debts.values()):
+            return JsonResponse({"error": "Нельзя удалить комнату: есть незакрытые расчёты"}, status=400)
+        room.delete()
+        return JsonResponse({"ok": True})
     if room.created_by_id != user.id:
         return JsonResponse(
             {"error": "Только создатель может редактировать комнату"}, status=403
@@ -403,6 +547,34 @@ def room_add_member(request, room_id):
     if not other:
         return JsonResponse({"error": "Пользователь не найден"}, status=404)
     room.members.add(other)
+    return JsonResponse({"ok": True})
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def room_remove_member(request, room_id, user_id):
+    user, err = _require_auth(request)
+    if err:
+        return err
+    try:
+        room = Room.objects.get(pk=room_id)
+    except (Room.DoesNotExist, ValueError):
+        return JsonResponse({"error": "Комната не найдена"}, status=404)
+    if room.created_by_id != user.id:
+        return JsonResponse({"error": "Только создатель управляет составом"}, status=403)
+    uid = str(user_id)
+    if uid == str(room.created_by_id):
+        return JsonResponse({"error": "Нельзя удалить создателя комнаты"}, status=400)
+    if not room.members.filter(pk=uid).exists():
+        return JsonResponse({"error": "Пользователь не в комнате"}, status=404)
+
+    member_ids, debts = _pair_debts_from_expenses(room)
+    debts = _apply_settlements_to_pair_debts(room, debts)
+    debts = _net_mutual_pair_debts(debts)
+    if any(c > 0 and (frm == uid or to == uid) for (frm, to), c in debts.items()):
+        return JsonResponse({"error": "Нельзя удалить: у участника есть незакрытые расчёты"}, status=400)
+
+    room.members.remove(uid)
     return JsonResponse({"ok": True})
 
 
@@ -699,21 +871,21 @@ def room_settlement_full(request, room_id):
     member_ids = {str(m.id) for m in room.members.all()}
     if uid not in member_ids:
         return JsonResponse({"error": "Нет в комнате"}, status=400)
-    raw_bal = _raw_balances_from_expenses(room)
-    raw_bal = _apply_settlements_to_balances(room, raw_bal)
-    transfers = simplify_debts(raw_bal)
+    member_ids, debts = _pair_debts_from_expenses(room)
+    debts = _apply_settlements_to_pair_debts(room, debts)
+    debts = _net_mutual_pair_debts(debts)
     count = 0
-    for t in transfers:
-        if str(t["from"]) != uid:
+    for (frm, to), cents in debts.items():
+        if frm != uid:
             continue
-        pay = float(t["amount"])
-        if pay <= 1e-9:
+        if cents <= 0:
             continue
+        amt = Decimal(cents) / Decimal(100)
         Settlement.objects.create(
             room=room,
-            from_user_id=t["from"],
-            to_user_id=t["to"],
-            amount=Decimal(str(round(pay, 2))),
+            from_user_id=frm,
+            to_user_id=to,
+            amount=amt.quantize(Decimal("0.01")),
             created_by=user,
             note="",
         )
@@ -744,20 +916,16 @@ def room_settlement_received(request, room_id):
         return JsonResponse({"error": "Участники должны быть в комнате"}, status=400)
     if from_id == to_id:
         return JsonResponse({"error": "Укажите другого участника"}, status=400)
-    raw_bal = _raw_balances_from_expenses(room)
-    raw_bal = _apply_settlements_to_balances(room, raw_bal)
-    transfers = simplify_debts(raw_bal)
-    pay = None
-    for t in transfers:
-        if str(t["from"]) == from_id and str(t["to"]) == to_id:
-            pay = float(t["amount"])
-            break
-    if pay is None or pay <= 1e-9:
+    _member_ids, debts = _pair_debts_from_expenses(room)
+    debts = _apply_settlements_to_pair_debts(room, debts)
+    debts = _net_mutual_pair_debts(debts)
+    pay_cents = debts.get((from_id, to_id), 0)
+    if pay_cents <= 0:
         return JsonResponse(
             {"error": "Нет долга этого участника перед вами по текущему расчёту"},
             status=400,
         )
-    amt = Decimal(str(round(pay, 2)))
+    amt = (Decimal(pay_cents) / Decimal(100)).quantize(Decimal("0.01"))
     st = Settlement.objects.create(
         room=room,
         from_user_id=from_id,
@@ -826,18 +994,23 @@ def room_balance(request, room_id):
     member_names = {
         str(m.id): (m.first_name or m.username) for m in room.members.all()
     }
-    raw_bal = _raw_balances_from_expenses(room)
-    raw_bal = _apply_settlements_to_balances(room, raw_bal)
-    named = {
-        member_names[k]: round(v, 2) for k, v in raw_bal.items()
-    }
-    transfers = simplify_debts(raw_bal)
+    member_ids, debts = _pair_debts_from_expenses(room)
+    debts = _apply_settlements_to_pair_debts(room, debts)
+    debts = _net_mutual_pair_debts(debts)
+    raw_bal = _net_balances_from_pair_debts(member_ids, debts)
+    balances_by_id = {k: round(v, 2) for k, v in raw_bal.items()}
+    named = {member_names[k]: round(v, 2) for k, v in raw_bal.items()}
+    transfers = [
+        {"from": frm, "to": to, "amount": round(cents / 100.0, 2)}
+        for (frm, to), cents in debts.items()
+        if cents > 0
+    ]
+    transfers_by_id = [
+        {"fromUserId": t["from"], "toUserId": t["to"], "amount": t["amount"]}
+        for t in transfers
+    ]
     out_t = [
-        {
-            "from": member_names[str(t["from"])],
-            "to": member_names[str(t["to"])],
-            "amount": t["amount"],
-        }
+        {"from": member_names[str(t["from"])], "to": member_names[str(t["to"])], "amount": t["amount"]}
         for t in transfers
     ]
     vid = str(user.id)
@@ -874,7 +1047,9 @@ def room_balance(request, room_id):
         {
             "currency": room.currency,
             "balances": named,
+            "balancesById": balances_by_id,
             "transfers": out_t,
+            "transfersById": transfers_by_id,
             "viewer": {
                 "payTo": pay_to,
                 "receiveFrom": receive_from,

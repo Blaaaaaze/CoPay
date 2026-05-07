@@ -3,7 +3,9 @@ import { Link, Navigate } from "react-router-dom";
 import { api, uploadAvatar } from "../../shared/api/client";
 import { useAuth, type AuthUser } from "../../app/auth/AuthContext";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { normalizeMediaUrl } from "../../shared/lib/mediaUrl";
+import { showToast } from "../../shared/ui/toast";
 import styles from "../FormPage.module.css";
 
 export function ProfilePage() {
@@ -97,8 +99,9 @@ export function ProfilePage() {
   async function copyCode() {
     const code = profile?.inviteCode;
     if (!code) return;
-    await navigator.clipboard.writeText(code);
-    setOk(t("profile.codeCopied"));
+    const ok = await copyToClipboard(code);
+    if (ok) showToast(t("common.copied"));
+    else setErr(t("common.error"));
   }
 
   const avatarSrc =

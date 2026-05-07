@@ -145,6 +145,32 @@ export function RoomDetailPage() {
     }
   }
 
+  async function deleteRoom() {
+    if (!token || !roomId || !room) return;
+    if (user?.id !== room.createdBy) return;
+    if (!window.confirm(t("room.deleteRoomConfirm", { name: room.name }))) return;
+    setErr("");
+    try {
+      await api(`/api/rooms/${roomId}`, { method: "DELETE", token });
+      window.location.href = "/rooms";
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : t("common.error"));
+    }
+  }
+
+  async function removeMember(userId: string) {
+    if (!token || !roomId || !room) return;
+    if (user?.id !== room.createdBy) return;
+    if (!window.confirm(t("room.removeMemberConfirm"))) return;
+    setErr("");
+    try {
+      await api(`/api/rooms/${roomId}/members/${userId}`, { method: "DELETE", token });
+      await reloadAll();
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : t("common.error"));
+    }
+  }
+
   if (!token) {
     return (
       <div className="container page-hero">
@@ -176,6 +202,10 @@ export function RoomDetailPage() {
 
   const receiveOwedBy = (memberId: string) =>
     balance?.viewer.receiveFrom.find((r) => r.fromUserId === memberId);
+
+  const roomHasActiveDebts = (balance?.transfersById?.length ?? 0) > 0;
+  const viewerHasActiveDebts =
+    (balance?.viewer.payTo?.some((x) => x.amount > 0) ?? false) || (balance?.viewer.receiveFrom?.some((x) => x.amount > 0) ?? false);
 
   const historySection = (
     <div>
@@ -247,11 +277,13 @@ export function RoomDetailPage() {
             <p className={formStyles.subtle}>—</p>
           ) : (
             <ul className={styles.viewerList}>
-              {balance.viewer.payTo.map((x, i) => (
-                <li key={i}>
-                  <strong>{x.toName}</strong>: {formatMoney(x.amount, balance.currency)}
-                </li>
-              ))}
+              {balance.viewer.payTo
+                .filter((x) => x.amount > 0)
+                .map((x, i) => (
+                  <li key={i}>
+                    <strong>{x.toName}</strong>: {formatMoney(x.amount, balance.currency)}
+                  </li>
+                ))}
             </ul>
           )}
           <p className={formStyles.subtle}>{t("room.youReceive")}</p>
@@ -259,11 +291,13 @@ export function RoomDetailPage() {
             <p className={formStyles.subtle}>—</p>
           ) : (
             <ul className={styles.viewerList}>
-              {balance.viewer.receiveFrom.map((x, i) => (
-                <li key={i}>
-                  <strong>{x.fromName}</strong>: {formatMoney(x.amount, balance.currency)}
-                </li>
-              ))}
+              {balance.viewer.receiveFrom
+                .filter((x) => x.amount > 0)
+                .map((x, i) => (
+                  <li key={i}>
+                    <strong>{x.fromName}</strong>: {formatMoney(x.amount, balance.currency)}
+                  </li>
+                ))}
             </ul>
           )}
         </div>
@@ -280,13 +314,30 @@ export function RoomDetailPage() {
           {room.members.map((m) => {
             const owed = user && m.id !== user.id ? receiveOwedBy(m.id) : undefined;
             const busy = receiveBusyId === m.id;
+            const canRemove = isCreator && m.id !== room.createdBy;
+            const hasNonZero =
+              !!balance?.transfersById?.some((tr) => tr.fromUserId === m.id || tr.toUserId === m.id) ||
+              Math.abs(balance?.balancesById?.[m.id] ?? 0) > 1e-9;
             return (
               <li key={m.id} className={styles.memberRow}>
                 <span>
                   {m.fullName}
                   {m.id === user?.id ? ` (${t("room.you")})` : ""}
                 </span>
-                {owed && (
+                {canRemove && (
+                  !hasNonZero && (
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => void removeMember(m.id)}
+                      style={{ opacity: 0.95 }}
+                      title={t("common.delete")}
+                    >
+                      {t("common.delete")}
+                    </button>
+                  )
+                )}
+                {owed && owed.amount > 0 && (
                   <button
                     type="button"
                     className={`btn-primary ${styles.memberReceiveBtn}`}
@@ -302,9 +353,22 @@ export function RoomDetailPage() {
           })}
         </ul>
         {isCreator && (
-          <button type="button" className="btn-ghost" style={{ marginTop: "0.75rem" }} onClick={() => setInviteOpen(true)}>
-            {t("room.invitePeople")}
-          </button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.75rem" }}>
+            <button type="button" className="btn-ghost" onClick={() => setInviteOpen(true)}>
+              {t("room.invitePeople")}
+            </button>
+            {!roomHasActiveDebts && !viewerHasActiveDebts && (
+              <button
+                type="button"
+                className="fw-btn fw-btn-del"
+                onClick={() => void deleteRoom()}
+                title={t("common.delete")}
+                style={{ border: "1px solid color-mix(in srgb, var(--danger, #ff4d4f) 40%, var(--border))" }}
+              >
+                {t("room.deleteRoom")}
+              </button>
+            )}
+          </div>
         )}
       </div>
 

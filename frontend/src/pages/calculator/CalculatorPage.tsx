@@ -3,8 +3,10 @@ import html2canvas from "html2canvas";
 import { api } from "../../shared/api/client";
 import { ReceiptParseButton } from "../../shared/receipt/ReceiptParseButton";
 import { useI18n } from "../../shared/i18n/I18nContext";
+import { copyToClipboard } from "../../shared/lib/copyToClipboard";
 import { formatMoney } from "../../shared/lib/currency";
 import { mergeProductLinesWithParticipants } from "../../shared/lib/mergeDuplicateLines";
+import { showToast } from "../../shared/ui/toast";
 import { ReceiptUploadModal } from "./ReceiptUploadModal";
 import formStyles from "../FormPage.module.css";
 import styles from "./CalculatorPage.module.css";
@@ -809,7 +811,13 @@ export function CalculatorPage() {
                 <button
                   type="button"
                   className="btn-ghost"
-                  onClick={() => shareUrl && navigator.clipboard.writeText(shareUrl)}
+                  onClick={async () => {
+                    if (!shareUrl) return;
+                    setErr("");
+                    const ok = await copyToClipboard(shareUrl);
+                    if (ok) showToast(t("common.copied"));
+                    else setErr(t("common.error"));
+                  }}
                 >
                   {t("common.copy")}
                 </button>
