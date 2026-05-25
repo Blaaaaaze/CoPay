@@ -10,7 +10,7 @@ CoPay — дипломный проект: веб-приложение для **
 
 ## Технологический стек
 
-- **Backend:** Python, Django, Django REST Framework
+- **Backend:** Python, Django
 - **Frontend:** React, Vite, TypeScript
 - **OCR-сервис:** Python EasyOCR
 - **Инфраструктура:** Docker, Docker Compose
