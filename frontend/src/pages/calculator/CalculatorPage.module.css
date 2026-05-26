@@ -86,8 +86,8 @@
   height: 1.85rem;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
   color: var(--muted);
   font-size: 0.85rem;
   font-weight: 700;
@@ -108,8 +108,8 @@
   margin: 0 0 0.65rem;
   padding: 0.65rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
   font-size: 0.88rem;
   line-height: 1.45;
   font-weight: 400;
@@ -333,6 +333,7 @@
 }
 
 .personAddRow {
+  --calc-fw-control-height: calc(4px + 1rem + 1.5em);
   display: grid;
   grid-template-columns: minmax(50%, 1fr) auto auto;
   gap: 0.4rem;
@@ -344,9 +345,17 @@
 .personAddRow .fw-base-input {
   min-width: 0;
   margin-bottom: 0;
+  height: var(--calc-fw-control-height);
+  min-height: var(--calc-fw-control-height);
+  box-sizing: border-box;
 }
 
-.personAddRow :global(button) {
+.personAddRow :global(button.btn-primary) {
+  height: var(--calc-fw-control-height);
+  min-height: var(--calc-fw-control-height);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 1rem;
   align-self: stretch;
 }
 
@@ -373,13 +382,26 @@
 }
 
 .addProductRow {
+  --calc-fw-control-height: calc(4px + 1rem + 1.5em);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-end;
   gap: 0.4rem;
   margin-top: 0.35rem;
   margin-bottom: 0.45rem;
+}
+
+.addProductRow :global(button.btn-primary),
+.addProductRow :global(button.btn-ghost) {
+  height: var(--calc-fw-control-height);
+  min-height: var(--calc-fw-control-height);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mappingViewport {
@@ -419,10 +441,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 0.85rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--hint-border);
   border-radius: 10px;
   padding: 0.6rem 0.7rem;
-  background: var(--surface);
+  background: var(--hint-bg);
 }
 
 .personList {
@@ -681,4 +703,57 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
+}
+
+.introInlinePanel,
+.participantsScrollArea,
+.productsBody,
+.personsGridInForm,
+.mappingViewport {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+.introInlinePanel::-webkit-scrollbar,
+.participantsScrollArea::-webkit-scrollbar,
+.productsBody::-webkit-scrollbar,
+.personsGridInForm::-webkit-scrollbar,
+.mappingViewport::-webkit-scrollbar {
+  width: 10px;
+}
+
+.introInlinePanel::-webkit-scrollbar-track,
+.participantsScrollArea::-webkit-scrollbar-track,
+.productsBody::-webkit-scrollbar-track,
+.personsGridInForm::-webkit-scrollbar-track,
+.mappingViewport::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 999px;
+  margin: 6px 0;
+}
+
+.introInlinePanel::-webkit-scrollbar-thumb,
+.participantsScrollArea::-webkit-scrollbar-thumb,
+.productsBody::-webkit-scrollbar-thumb,
+.personsGridInForm::-webkit-scrollbar-thumb,
+.mappingViewport::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-thumb-border);
+}
+
+.introInlinePanel::-webkit-scrollbar-thumb:hover,
+.participantsScrollArea::-webkit-scrollbar-thumb:hover,
+.productsBody::-webkit-scrollbar-thumb:hover,
+.personsGridInForm::-webkit-scrollbar-thumb:hover,
+.mappingViewport::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.introInlinePanel::-webkit-scrollbar-thumb:active,
+.participantsScrollArea::-webkit-scrollbar-thumb:active,
+.productsBody::-webkit-scrollbar-thumb:active,
+.personsGridInForm::-webkit-scrollbar-thumb:active,
+.mappingViewport::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
 }

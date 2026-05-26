@@ -29,20 +29,28 @@
 }
 
 .scroll::-webkit-scrollbar-track {
-  background: var(--surface-2);
+  background: var(--scrollbar-track);
   border-radius: 999px;
   margin: 6px 0;
 }
 
 .scroll::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
-  border: 2px solid var(--surface);
+  border: 2px solid var(--scrollbar-thumb-border);
 }
 
 .scroll {
-  scrollbar-color: color-mix(in srgb, var(--muted) 50%, transparent) var(--surface-2);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.scroll::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
 }
 
 .footer {
@@ -96,4 +104,9 @@
 
 .linePersonsGrid {
   justify-content: flex-start;
+  background: var(--hint-bg);
+  border: 1px solid var(--hint-border);
+  border-radius: 10px;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
 }

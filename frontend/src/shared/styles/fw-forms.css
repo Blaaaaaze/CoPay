@@ -58,17 +58,31 @@ html[data-theme="dark"] .fw-panel {
 }
 
 .fw-check {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 16px 1fr;
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
   font-size: 1.05rem;
   cursor: pointer;
+  line-height: 1.25;
 }
 
 .fw-check input {
   width: 16px;
   height: 16px;
   accent-color: var(--accent-cyan);
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+  flex: 0 0 auto;
+  min-width: 16px;
+  min-height: 16px;
+  box-sizing: border-box;
+}
+
+.fw-check input:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 .fw-btn {

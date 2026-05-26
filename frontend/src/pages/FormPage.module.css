@@ -108,8 +108,8 @@
   height: 1.85rem;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
   color: var(--muted);
   font-size: 0.85rem;
   font-weight: 700;
@@ -140,10 +140,10 @@
   font-style: normal;
   text-align: left;
   color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--hint-bg);
+  border: 1px solid var(--hint-border);
   border-radius: 12px;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14);
+  box-shadow: var(--hint-shadow);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -155,8 +155,8 @@
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
   font-size: 0.88rem;
   line-height: 1.45;
   color: var(--text);

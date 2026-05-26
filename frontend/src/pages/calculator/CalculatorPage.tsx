@@ -499,9 +499,6 @@ export function CalculatorPage() {
                         </div>
                       </div>
                       <div className={styles.addProductRow}>
-                        <Button variant="primary" type="submit">
-                          {t("common.add")}
-                        </Button>
                         <ReceiptParseButton
                           label={t("calc.receiptFromFile")}
                           onError={(m) => setErr(m)}
@@ -533,6 +530,9 @@ export function CalculatorPage() {
                             setEditingProductIdx(null);
                           }}
                         />
+                        <Button variant="primary" type="submit">
+                          {t("common.add")}
+                        </Button>
                         <Button type="button" variant="primary" onClick={goToMapping}>
                           {t("calc.next")}
                         </Button>
