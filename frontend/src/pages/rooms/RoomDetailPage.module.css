@@ -177,7 +177,7 @@
 }
 
 .expenseRowClickable:hover {
-  background: var(--surface-2);
+  background: var(--hover-bg);
 }
 
 .expenseRowClickable:focus-visible {
@@ -246,7 +246,7 @@
 }
 
 .roomTitleClickable:hover {
-  background: var(--surface-2);
+  background: var(--hover-bg);
 }
 
 .roomNameInput {

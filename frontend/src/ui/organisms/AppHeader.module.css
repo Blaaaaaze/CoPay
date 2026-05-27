@@ -153,7 +153,7 @@
 }
 
 .dropdownItem:hover {
-  background: var(--surface-2);
+  background: var(--hover-bg);
 }
 
 @media (max-width: 720px) {

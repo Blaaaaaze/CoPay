@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import secrets
 import uuid
 from collections import defaultdict
@@ -28,6 +29,41 @@ from .models import (
 from .settlement import simplify_debts
 
 logger = logging.getLogger(__name__)
+
+_INVITE_CODE_PART = re.compile(r"^[A-F0-9]{4,16}$", re.IGNORECASE)
+
+
+def _user_search_fields(u: User) -> tuple[str, str, str, str, str, str]:
+    """Normalized strings for case-insensitive match (Cyrillic-safe on SQLite)."""
+    fn = (u.first_name or "").casefold()
+    ln = (u.last_name or "").casefold()
+    un = (u.username or "").casefold()
+    em = (u.email or "").casefold()
+    full = f"{fn} {ln}".strip()
+    ic = (u.invite_code or "").casefold()
+    return fn, ln, un, em, full, ic
+
+
+def _user_matches_part(u: User, part: str) -> bool:
+    needle = part.casefold()
+    fn, ln, un, em, full, ic = _user_search_fields(u)
+    if _INVITE_CODE_PART.fullmatch(part):
+        return needle in ic
+    return needle in fn or needle in ln or needle in un or needle in em or needle in full or needle in ic
+
+
+def _user_matches_search(u: User, parts: list[str]) -> bool:
+    code_parts = [p for p in parts if _INVITE_CODE_PART.fullmatch(p)]
+    name_parts = [p for p in parts if not _INVITE_CODE_PART.fullmatch(p)]
+
+    name_ok = bool(name_parts) and all(_user_matches_part(u, t) for t in name_parts)
+    code_ok = bool(code_parts) and any(_user_matches_part(u, c) for c in code_parts)
+
+    if code_parts and name_parts:
+        return name_ok or code_ok
+    if code_parts:
+        return code_ok
+    return name_ok
 
 
 def _body(request) -> dict:
@@ -380,19 +416,12 @@ def user_search(request):
     q = (request.GET.get("q") or "").strip()
     if len(q) < 2:
         return JsonResponse([], safe=False)
-    tokens = q.split()
-    qs = User.objects.exclude(pk=user.pk)
-    q_upper = q.upper()
-    name_q = (
-        Q(first_name__icontains=q)
-        | Q(last_name__icontains=q)
-        | Q(username__icontains=q)
-        | Q(invite_code__icontains=q_upper)
-    )
-    for t in tokens:
-        if len(t) >= 2:
-            name_q |= Q(first_name__icontains=t) | Q(last_name__icontains=t)
-    qs = qs.filter(name_q).distinct()[:30]
+    parts = [p for p in re.split(r"[\s,;]+", q) if p]
+    if not parts:
+        return JsonResponse([], safe=False)
+
+    candidates = User.objects.exclude(pk=user.pk).order_by("first_name", "last_name")
+    matched = [u for u in candidates if _user_matches_search(u, parts)][:30]
     out = [
         {
             "id": str(u.id),
@@ -404,7 +433,7 @@ def user_search(request):
             or u.username,
             "inviteCode": u.invite_code,
         }
-        for u in qs
+        for u in matched
     ]
     return JsonResponse(out, safe=False)
 

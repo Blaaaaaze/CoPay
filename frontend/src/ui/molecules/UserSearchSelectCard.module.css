@@ -17,7 +17,8 @@
 }
 
 .card:hover {
-  background: var(--surface-2);
+  background: var(--hover-bg);
+  border-color: color-mix(in srgb, var(--accent-cyan) 35%, var(--border));
 }
 
 .disabled {
