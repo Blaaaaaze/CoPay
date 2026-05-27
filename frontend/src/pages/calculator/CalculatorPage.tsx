@@ -522,7 +522,9 @@ export function CalculatorPage() {
                             ];
                             const appendedLp = [
                               ...lp,
-                              ...items.map(() => [...namedList]),
+                              // For receipt-imported items, start with no selected participants.
+                              // User will tick who shares each line on the next step.
+                              ...items.map(() => [] as string[]),
                             ];
                             const merged = mergeProductLinesWithParticipants(appended, appendedLp);
                             setProductLines(merged.productLines);
